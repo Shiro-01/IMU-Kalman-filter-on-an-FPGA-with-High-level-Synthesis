@@ -59,3 +59,4 @@ direction LR
     Performance_Evaluation --> ESP32_Software_Implementation
     Performance_Evaluation --> FPGA_HLS_Implementation
     Performance_Evaluation --> Commercial_IMU_Comparison```
+```
