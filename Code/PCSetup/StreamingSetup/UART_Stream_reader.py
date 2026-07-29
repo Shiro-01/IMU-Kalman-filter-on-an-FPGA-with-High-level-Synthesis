@@ -5,8 +5,8 @@
  * Bucket Description:
  *   - SYNC1     : 0xAA  -> MArks the start of the bucket
  *   - SYNC2     : 0x55  -> Second SYNC signal to ensure lock in, one can be actually data, but a attern AA, 55 is rare to occur
- *   - TYPE      : (0x01, 0x02) Payload TYPE, 0x01 : IMU DATA + State Vector, 0x02 : IMU DATA + State Vector + Performance data
- *   - LEN       : Bucket length, in case of 0x01 -> 15 * 2 = 30 Bytes
+ *   - TYPE      : (0x01, 0x02) Payload TYPE, 0x01 : IMU DATA + State Vector + mgValidbit, 0x02 : IMU DATA + State Vector + Performance data
+ *   - LEN       : Bucket length, in case of 0x01 -> (15 * 4) + 1 = 61 Bytes
  *   - Payload   : If Type (0x01) -> (ax, ay, az, gyrox, gyroy, gyroz, magx, magy, magz, TheataX, TheataY, TheataZ, GyroBx, GyroBy, GyroBz)
  *   - CHK       : Simple XOR CheckSUM tthrough whole payload -- as Comunication reialbility is not our concern her, we were statisfied with this algorisim
  *
@@ -15,7 +15,6 @@
  * @date    2026
 
 """
-
 import serial 
 import struct 
 import sys
@@ -25,15 +24,14 @@ SYNC1 = 0xAA
 SYNC2 = 0x55
 
 # UART Protocol Setting CONSTANTS 
-PORT     = '/dev/tty.usbserial-110'    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
-BAUDRATE = 921600
+PORT     = '/dev/tty.usbserial-10'    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
+BAUDRATE = 115200
 PARITY   = serial.PARITY_ODD      # serial.PARITY_NONE
-STOPBITS = serial.STOPBITS_TWO    # erial.STOPBITS_ONE
+STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
 BYTESIZE = serial.EIGHTBITS
 
-
-# Types Dictionary with payload foramt
-TYPES = {0x01  : '<15f',      # ax, ay, az, gx, gy, gz, mx, my, mz, theataX, TheataY, TheataZ, GyroBx, GyroBy, GyroBz
+# Types Dictionary with payload foramt. < : litle endian, 15 flaots in order, and one bool
+TYPES = {0x01  : '<15f?',      # ax, ay, az, gx, gy, gz, mx, my, mz, , theataX, TheataY, TheataZ, GyroBx, GyroBy, GyroBz, magValid
          }
 
 
