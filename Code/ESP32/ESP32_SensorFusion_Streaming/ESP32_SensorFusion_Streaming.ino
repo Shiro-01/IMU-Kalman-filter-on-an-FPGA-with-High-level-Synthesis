@@ -5,7 +5,7 @@
 
 #include "ICM20948_SPI.h"
 
-#define SERIALCONFIG SERIAL_8O1
+#define SERIALCONFIG SERIAL_8N1
 #define SERIALRATE 115200
 
 void setup() {
