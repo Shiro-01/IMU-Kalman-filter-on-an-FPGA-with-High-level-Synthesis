@@ -53,10 +53,19 @@ void sendIMUPacket(float ax, float ay, float az,
     uint8_t chk = computeChecksum(TYPE_IMU_STATE, length, payload);
 
     // Send the full bucket: SYNC1, SYNC2, TYPE, LEN, PAYLOAD, CHK
-    Serial.write(SYNC1);
+    uint8_t packet[4 + length + 1];
+    packet[0] = SYNC1;
+    packet[1] = SYNC2;
+    packet[2] = TYPE_IMU_STATE;
+    packet[3] = length;
+    memcpy(&packet[4], payload, length);
+    packet[4 + length] = chk;
+    Serial.write(packet, sizeof(packet));
+
+   /*  Serial.write(SYNC1);
     Serial.write(SYNC2);
     Serial.write(TYPE_IMU_STATE);
     Serial.write(length);
     Serial.write(payload, length);
-    Serial.write(chk);
+    Serial.write(chk); */
 }

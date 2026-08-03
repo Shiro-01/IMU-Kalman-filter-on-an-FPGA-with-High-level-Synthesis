@@ -26,7 +26,7 @@ SYNC2 = 0x55
 # UART Protocol Setting CONSTANTS 
 PORT     = '/dev/tty.usbserial-10'    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
 BAUDRATE = 115200
-PARITY   = serial.PARITY_ODD      # serial.PARITY_NONE
+PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
 BYTESIZE = serial.EIGHTBITS
 
