@@ -258,9 +258,9 @@ begin
                     when RX_PARITY => 
                         if rx_tick_counter = OVERSAMPLE / 2 then 
                             if PARITY_BIT = 'E' then
-                                parity_error_r <= ((xor shift_in_register) xor uart_rx_sync_ff2);
+                                parity_error_r <= ((xor shift_in_register(payload_bits - 1 downto 0)) xor uart_rx_sync_ff2);
                             elsif PARITY_BIT = 'O' then
-                                parity_error_r <= not((xor shift_in_register) xor uart_rx_sync_ff2);
+                                parity_error_r <= not((xor shift_in_register(payload_bits - 1 downto 0)) xor uart_rx_sync_ff2);
                             end if;
 
                             rx_engine_state <= RX_STOPBITS;
