@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_axistream_uart_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="tb_axistream_uart" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="6,543.630 ns"></ZoomStartTime>
+      <ZoomEndTime time="7,186.631 ns"></ZoomEndTime>
+      <Cursor1Time time="777.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="278"></NameColumnWidth>
+      <ValueColumnWidth column_width="74"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="21" />
+   <wvobject fp_name="/tb_axistream_uart/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/rst_n" type="logic">
+      <obj_property name="ElementShortName">rst_n</obj_property>
+      <obj_property name="ObjectShortName">rst_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/uart_txd" type="logic">
+      <obj_property name="ElementShortName">uart_txd</obj_property>
+      <obj_property name="ObjectShortName">uart_txd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/uart_rxd" type="logic">
+      <obj_property name="ElementShortName">uart_rxd</obj_property>
+      <obj_property name="ObjectShortName">uart_rxd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/tx_bit_counter" type="other">
+      <obj_property name="ElementShortName">tx_bit_counter</obj_property>
+      <obj_property name="ObjectShortName">tx_bit_counter</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/din" type="array">
+      <obj_property name="ElementShortName">din[7:0]</obj_property>
+      <obj_property name="ObjectShortName">din[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/shift_in_register" type="array">
+      <obj_property name="ElementShortName">shift_in_register[7:0]</obj_property>
+      <obj_property name="ObjectShortName">shift_in_register[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/rx_tick_counter" type="other">
+      <obj_property name="ElementShortName">rx_tick_counter</obj_property>
+      <obj_property name="ObjectShortName">rx_tick_counter</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/din_valid" type="logic">
+      <obj_property name="ElementShortName">din_valid</obj_property>
+      <obj_property name="ObjectShortName">din_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/din_ready" type="logic">
+      <obj_property name="ElementShortName">din_ready</obj_property>
+      <obj_property name="ObjectShortName">din_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/shift_out_register" type="array">
+      <obj_property name="ElementShortName">shift_out_register[7:0]</obj_property>
+      <obj_property name="ObjectShortName">shift_out_register[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dout" type="array">
+      <obj_property name="ElementShortName">dout[7:0]</obj_property>
+      <obj_property name="ObjectShortName">dout[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dout_valid" type="logic">
+      <obj_property name="ElementShortName">dout_valid</obj_property>
+      <obj_property name="ObjectShortName">dout_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dout_ready" type="logic">
+      <obj_property name="ElementShortName">dout_ready</obj_property>
+      <obj_property name="ObjectShortName">dout_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/frame_error" type="logic">
+      <obj_property name="ElementShortName">frame_error</obj_property>
+      <obj_property name="ObjectShortName">frame_error</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/parity_error" type="logic">
+      <obj_property name="ElementShortName">parity_error</obj_property>
+      <obj_property name="ObjectShortName">parity_error</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/TEST_BYTES" type="array">
+      <obj_property name="ElementShortName">TEST_BYTES[0:4][7:0]</obj_property>
+      <obj_property name="ObjectShortName">TEST_BYTES[0:4][7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/tx_engine_state" type="other">
+      <obj_property name="ElementShortName">tx_engine_state</obj_property>
+      <obj_property name="ObjectShortName">tx_engine_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/rx_engine_state" type="other">
+      <obj_property name="ElementShortName">rx_engine_state</obj_property>
+      <obj_property name="ObjectShortName">rx_engine_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/start_tx_tick_counter" type="logic">
+      <obj_property name="ElementShortName">start_tx_tick_counter</obj_property>
+      <obj_property name="ObjectShortName">start_tx_tick_counter</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_axistream_uart/dut/tx_tick_counter" type="other">
+      <obj_property name="ElementShortName">tx_tick_counter</obj_property>
+      <obj_property name="ObjectShortName">tx_tick_counter</obj_property>
+   </wvobject>
+</wave_config>
