@@ -17,22 +17,27 @@
 -- //////////////////////////////////////////////////////////////////////////////////
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity timestamping_unit is
+    generic(
+        TIMESTAMP_WIDTH : natural := 64
+    );
+
     port(
         clk    : in  std_logic;
         rst_n  : in  std_logic;    -- active-low synchronous reset
 
-        time_stamp : out std_logic_vector(63 downto 0)
+        time_stamp : out std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0)
     );
 end entity timestamping_unit;
 
 architecture rtl of timestamping_unit is
 
-    signal counter : unsigned(63 downto 0) := (others => '0');
+    signal counter : unsigned(TIMESTAMP_WIDTH - 1 downto 0) := (others => '0');
 
 begin
-    time_stamp <= counter;
+    time_stamp <= std_logic_vector(counter);
 
     counter_p : process(clk) is 
     begin 
