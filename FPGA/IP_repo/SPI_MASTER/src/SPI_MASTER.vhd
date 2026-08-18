@@ -69,11 +69,11 @@ architecture rtl of spi_master is
     -- Controller interface Signals
     signal s_axis_tready_r : std_logic := '0';
 
--- SPI FSM 
-    type spi_fsm_st_t is (IDLE, RUNNING, SCLK_HOLD, CS_HOLD);
-
 -- SPI sclk Generation process signals
     signal sclk_counter : natural range 0 to CLK_DIV_HALF - 1 := CLK_DIV_HALF - 1;
+
+-- SPI FSM 
+    type spi_fsm_st_t is (IDLE, RUNNING, SCLK_HOLD, CS_HOLD);
 
 -- SPI FSM Signals 
     signal spi_fsm_st     : spi_fsm_st_t := IDLE;
@@ -86,6 +86,7 @@ architecture rtl of spi_master is
     signal bits_counter      : natural range 0 to 8 := 0;
     signal sclk_hold_counter : natural range 0 to SCLK_HIGH_H_TIME - 1 := 0;
     signal cs_hold_counter   : natural range 0 to CS_HOLD_TIME - 1 := 0;
+
 begin
 
 -- Generic sanity checks (happen at elaboration-time only with zero hardware cost)
