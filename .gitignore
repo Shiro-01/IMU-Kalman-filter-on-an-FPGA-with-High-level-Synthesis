@@ -1,0 +1,4 @@
+sim/*.cf
+sim/*.o
+sim/tb_timestamping_unit
+sim/wave.vcd
