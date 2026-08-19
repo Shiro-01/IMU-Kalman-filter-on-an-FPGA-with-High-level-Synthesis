@@ -13,11 +13,9 @@
  * @author  Abdelrahman Hewala
  * @note    Supervisor: Prof. Lutz Leutelt
  * @date    2026
-
 """
 import serial 
 import struct 
-import sys
 from frame_types import RawSampleMode0
 
 
@@ -25,12 +23,6 @@ from frame_types import RawSampleMode0
 SYNC1 = 0xAA
 SYNC2 = 0x55
 
-# UART Protocol Setting CONSTANTS 
-PORT     = '/dev/tty.usbserial-10'    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
-BAUDRATE = 1152000
-PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
-STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
-BYTESIZE = serial.EIGHTBITS
 
 # Modes Dictionary with payload foramt. > : big endian (serializer sends MSB first per word).
 # MODE_0: Q = TS_MSB,TS,TS,TS_LSB (unsigned long long) | 10h = ax,ay,az,gyrox,gyroy,gyroz,temp,magx,magy,magz (signed) | H = magState (unsigned)
@@ -90,25 +82,3 @@ def read_packet(ser : serial.Serial) :
     return modeWord, sample_cls(*values)
 
 
-""" if __name__ == "__main__":
-    try:
-        ser = serial.Serial(
-            port=PORT,
-            baudrate=BAUDRATE,
-            bytesize=BYTESIZE,
-            parity=PARITY,
-            stopbits=STOPBITS,
-            timeout=1
-        )
-    except serial.SerialException as e:
-        print(f"Could not open serial port {PORT}: {e}")
-        print("Check that the ESP32 is connected and the PORT constant matches your device.")
-        print("Run: ls /dev/ | grep -i usb")
-        sys.exit(1)
-        
-    while True:
-        result = read_packet(ser)
-        if result is None:
-            continue
-        modeWord, values = result
-        print(modeWord, values) """

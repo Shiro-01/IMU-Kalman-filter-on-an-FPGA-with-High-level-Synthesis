@@ -54,7 +54,7 @@ def main():
         modeWord, samplesMode0 = result
 
         physicalSampleMode0_x = sampleConverter.convert(samplesMode0)
-        print(modeWord, physicalSampleMode0_x)
+        print(modeWord, samplesMode0.ts, physicalSampleMode0_x)
 
 
 if __name__ == "__main__":
