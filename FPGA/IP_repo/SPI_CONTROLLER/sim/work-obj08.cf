@@ -1,0 +1,10 @@
+v 4
+file . "../tb/tb_SPI_CONTROLLER.vhd" "5c47c7b9c6fba90f67cf3d471200ef31c9f7fb29" "20260819180909.804":
+  entity tb_spi_controller at 19( 1103) + 0 on 35;
+  architecture sim of tb_spi_controller at 27( 1231) + 0 on 36;
+file . "../src/SPI_CONTROLLER.vhd" "14afae23fd4a5c944a6dcf30eaea54a0776c7361" "20260819180909.502":
+  entity spi_controller at 91( 5056) + 0 on 33;
+  architecture rtl of spi_controller at 137( 6733) + 0 on 34;
+file . "../src/SPI_MASTER.vhd" "bf763fb1bf1c9bafc7275146b919a1d40dc4ee53" "20260819144928.833":
+  entity spi_master at 27( 1404) + 0 on 17;
+  architecture rtl of spi_master at 62( 2914) + 0 on 18;
