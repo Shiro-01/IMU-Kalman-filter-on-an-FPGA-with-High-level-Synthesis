@@ -475,7 +475,7 @@ begin
             else
                 case running_state is
                     when IDLE => 
-                        if imu_int_ff2_dly = '0' and imu_int_ff2 = '1' and setup_state = SETUP_DONE then
+                        if imu_int_ff2_dly = '1' and imu_int_ff2 = '0' and setup_state = SETUP_DONE then. -- rising edge
                             -- latch the time stamp from 47 down to 0
                             timestamp_r <= timestamp(((TIMESTAMP_WORDS - 1) * WORD_WIDTH) - 1 downto 0);            -- no need to subtract 2 from the time stamp for the delay of the two sync flip flops. 
                                                                                                                     -- This because dt wil be the differnce between timestamps. so the twos will cross out .
