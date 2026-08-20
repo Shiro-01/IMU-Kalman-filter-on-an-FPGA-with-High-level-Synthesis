@@ -1,3 +1,0 @@
-[server]
-maxUploadSize = 2000  # Set limit to 2GB
-maxMessageSize = 2000 # Set message limit to 2GB
