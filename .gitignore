@@ -1,4 +1,11 @@
-sim/*.cf
-sim/*.o
-sim/tb_timestamping_unit
-sim/wave.vcd
+# macOS
+.DS_Store
+
+# Simulation artifacts (GHDL/GTKWave) — any IP's sim/ folder, at any depth
+**/sim/*.cf
+**/sim/*.o
+**/sim/*.fst
+**/sim/tb_*
+
+Code/PCSetup/PCsetup4ESP32/AllenVarianceBenchmarkingDashboard/Data
+Literature/KalmanFilter/Kalman-and-Bayesian-Filters-in-Python/
