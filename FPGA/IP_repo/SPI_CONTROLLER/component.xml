@@ -149,7 +149,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>dd73c57b</spirit:value>
+            <spirit:value>91c2c713</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -165,7 +165,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>dd73c57b</spirit:value>
+            <spirit:value>91c2c713</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -478,7 +478,7 @@
       <spirit:file>
         <spirit:name>src/SPI_CONTROLLER.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_071ab010</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_91c2c713</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -552,8 +552,8 @@
       </xilinx:taxonomies>
       <xilinx:displayName>spi_controller_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>9</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2026-08-18T11:11:15Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>10</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2026-08-19T20:01:11Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="nopcore"/>
       </xilinx:tags>
@@ -561,10 +561,10 @@
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2026.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="483a8bbd"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="92bba767"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="8995c378"/>
-      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="aed6f5e4"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="414d0794"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="8f0bb603"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="d653f88a"/>
+      <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="80b9f500"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="a0742bcb"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>
