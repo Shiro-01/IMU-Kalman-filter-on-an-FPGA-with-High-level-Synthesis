@@ -1,7 +1,0 @@
-v 4
-file . "../tb/tb_UART_CONTROLLER.vhd" "7abd05cba65d8215bc828a717d27881c9ba7a5e1" "20260818181549.455":
-  entity tb_uart_controller at 16( 744) + 0 on 17;
-  architecture sim of tb_uart_controller at 23( 847) + 0 on 18;
-file . "../src/UART_CONTROLLER.vhd" "9ff254aad3832524a2c6d2717367fde4840b57ec" "20260818181549.332":
-  entity uart_controller at 46( 1625) + 0 on 15;
-  architecture rtl of uart_controller at 73( 2395) + 0 on 16;
