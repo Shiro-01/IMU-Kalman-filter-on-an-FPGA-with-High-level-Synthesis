@@ -2,7 +2,7 @@
 
 Bachelor thesis project on implementing IMU sensor fusion with a Kalman
 filter on an FPGA, using High-Level Synthesis (HLS). The project runs the
-full pipeline start to finish: benchmarking candidate IMUs, acquiring
+full pipeline start to finish: benchmarking candidate IMUs using Allan Variance, defining noise characteristic for each, acquiring
 sensor data on real hardware, designing and validating the filter in
 software, and finally accelerating it on FPGA fabric.
 
