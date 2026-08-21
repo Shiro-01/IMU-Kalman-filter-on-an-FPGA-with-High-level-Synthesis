@@ -13,6 +13,5 @@ Literature/KalmanFilter/Fundamentals_of_Kalman_Filtering.pdf
 Literature/ThesisGuideLines/
 
 /FPGA/drafts/
-*/__pycache__/
 Code/PCSetup/PCsetup4FPGA/__pycache__/
 Presentation
