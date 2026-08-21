@@ -2,7 +2,7 @@
 
 Bachelor thesis project on implementing IMU sensor fusion with a Kalman
 filter on an FPGA, using High-Level Synthesis (HLS). The project runs the
-full pipeline start to finish: benchmarking candidate IMUs using Allan Variance, defining noise characteristic for each, acquiring
+full pipeline start to finish: benchmarking candidate IMUs using Allan Variance, Noise characterization, acquiring
 sensor data on real hardware, designing and validating the filter in
 software, and finally accelerating it on FPGA fabric.
 
@@ -17,9 +17,9 @@ IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/
 ├── Code/
 │   ├── ESP32/                FreeRTOS ESP32 firmware for IMU benchmarking
 │   └── PCsetup/
-│       ├── PCsetup4ESP32/     Allan variance streamlit benchmarking dashboard
-│       └── PCsetup4FPGA/      UART decode, unit conversion, live pipeline
-├── DataSheets/               Datasheets for every sensor in use
+│       ├── PCsetup4ESP32/    Allan variance streamlit benchmarking dashboard
+│       └── PCsetup4FPGA/     UART decode, unit conversion, live pipeline
+├── DataSheets/               Datasheets for every sensor or board in use
 ├── FPGA/                     Vivado project recreation, IP repo, block design, TCLs and more. Pls See FPGA/README.md
 ├── Literature/                Reference material, Kalman filter design notebook
 └── README.md                  This file
@@ -96,7 +96,7 @@ direction LR
   vector, process and measurement models) is finished, worked out in
   `Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`.
   What is left is fine-tuning against real logged sensor data in Python.
-- **HLS conversion** — not started yet. Follows once the Python filter is
+- **HLS conversion** : not started yet. Follows once the Python filter is
   tuned and validated against real data from the FPGA pipeline.
 
 ---
@@ -108,7 +108,8 @@ benchmarked against each other by Allan variance: the MPU6050, the
 ICM-20948, and the WitMotion WT901.
 
 An ESP32 (`Code/ESP32/ESP32_data_Aquisition/`) reads all three sensors in
-parallel on a 1kHz hardware timer, using a FreeRTOS producer, consumer
+
+parallel on a 1kHz hardware timer, using a FreeRTOS producer, consumer 
 pair of tasks (a collector task filling triple-buffered frames, a logger
 task writing them to SD card) so sampling stays on schedule even while the
 SD card is being written to. Each 50-byte frame holds a 64-bit

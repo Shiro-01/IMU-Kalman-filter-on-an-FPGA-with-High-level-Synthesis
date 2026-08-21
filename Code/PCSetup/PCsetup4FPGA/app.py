@@ -22,7 +22,7 @@ TEMP_LSB_PER_C =  333.87
 TEMP_OFFSET = 21.0
 
 # UART Protocol Setting CONSTANTS 
-PORT     = 'COM4'                                      #'/dev/tty.usbserial-10'    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
+PORT     = 'COM4'                                      #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
 BAUDRATE = 1152000
 PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
