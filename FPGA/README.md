@@ -13,15 +13,41 @@ Target device: Xilinx Basys 3 (xc7a35tcpg236-1) | VHDL-2008 | Vivado 2026.1
 
 ```
 FPGA/
-├── IP_repo/            Custom packaged Vivado IP cores, per-IP product guides (.md)
+├── IP_repo/            Custom Vivado IP cores, already packaged and ready to import
+│   ├── AXI_STREAM_UART/
+│   ├── axis_serializer/
+│   ├── CLOCK_EN/
+│   ├── FIFO_AXIS/
+│   ├── SPI_CONTROLLER/
+│   ├── SPI_MASTER/
+│   ├── timestamping_unit/
+│   └── UART_CONTROLLER/
 ├── Constrain_files/     XDC constraint files (Basys-3-Master.xdc, streaming.xdc)
 ├── block_designs/       Exported block design Tcl (IMU_Streaming.tcl)
 └── Tcl/                 Project (re)creation script (create_project.tcl)
 ```
-
+ 
+Each IP under `IP_repo/` follows the same layout:
+ 
+```
+IP_repo/<IP_NAME>/
+├── doc/                    ProductGuide PDF, some simple ips don't have a one, complex ones do
+├── src/                    VHDL source
+├── tb/                     Testbench, where one exists (see Simulation below)
+├── sim/                    GHDL/GTKWave Makefile and generated waveform, where one exists
+├── xgui/                   Vivado IP packager GUI customization files
+├── component.xml           Vivado IP-XACT descriptor
+└── readme.md               Product Guide as .md file (Interface, internals, known limitations, verification (.md, occasionally also .pdf)) - some simple ips don't have a one, complex ones do
+```
+ 
+Every IP here is already packaged output (`component.xml` plus `xgui`),
+so it is picked up as soon as `IP_repo` is added to `ip_repo_paths` and
+`update_ip_catalog` is run, both handled automatically by
+`create_project.tcl` below.
+ 
 The host-side pipeline that reads, decodes, and converts the UART stream
 lives outside this folder, at:
-
+ 
 ```
 Code/PCsetup/PCsetup4FPGA/
 ├── UARTFPGA_reader.py    Frame sync, checksum, struct.unpack, mode dispatch
@@ -29,11 +55,9 @@ Code/PCsetup/PCsetup4FPGA/
 ├── sample_converter.py    Raw counts to physical units (g, rad/s, uT, C)
 └── app.py                 Wires the three together, prints live samples
 ```
-
+ 
 `build/` (the recreated Vivado project itself) is generated one directory
 above the repository root and is not tracked in version control. See below.
-
----
 
 ## Recreating the Project
 
