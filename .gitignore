@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Simulation artifacts (GHDL/GTKWave) — any IP's sim/ folder, at any depth
+**/sim/*.cf
+**/sim/*.o
+**/sim/*.fst
+**/sim/tb_*
+
+Code/PCSetup/PCsetup4ESP32/AllenVarianceBenchmarkingDashboard/Data
+Literature/KalmanFilter/Kalman-and-Bayesian-Filters-in-Python/
+Literature/KalmanFilter/Fundamentals_of_Kalman_Filtering.pdf 
+Literature/ThesisGuideLines/
+
+/FPGA/drafts/
+__pycache__/
+Presentation

@@ -1,0 +1,82 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Wed Aug 19 18:08:51 2026
+[*]
+[dumpfile] "/Users/abdelrahmanhewala/Documents/IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/FPGA/IP_repo/SPI_CONTROLLER/sim/wave.fst"
+[dumpfile_mtime] "Wed Aug 19 18:02:18 2026"
+[dumpfile_size] 1005
+[savefile] "/Users/abdelrahmanhewala/Documents/IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/FPGA/IP_repo/SPI_CONTROLLER/sim/wave.gtkw"
+[timestart] 0
+[size] 1728 1080
+[pos] -1 -2
+*-27.000000 119400000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[sst_width] 365
+[signals_width] 218
+[sst_expanded] 1
+[sst_vpaned_height] 327
+@28
+[color] 7
+clk
+[color] 7
+rst_n
+@200
+-
+-
+@28
+[color] 1
+dut.imu_int_ff2
+[color] 1
+dut.imu_int_ff2_dly
+@200
+-
+-
+@22
+dut.m_axis_spi_tdata[7:0]
+@200
+-
+@28
+dut.m_axis_spi_tlast
+@200
+-
+@28
+dut.m_axis_spi_tready
+@200
+-
+@28
+dut.m_axis_spi_tvalid
+@200
+-
+-
+@28
+dut.setup_state
+@200
+-
+@28
+dut.setup_idx
+@200
+-
+@28
+dut.running_state
+@200
+-
+-
+@22
+[color] 3
+dut.m_axis_fifo_tdata[15:0]
+@200
+-
+@28
+[color] 3
+dut.m_axis_fifo_tlast
+@200
+-
+@28
+[color] 3
+dut.m_axis_fifo_tready
+@200
+-
+@29
+[color] 3
+dut.m_axis_fifo_tvalid
+[pattern_trace] 1
+[pattern_trace] 0

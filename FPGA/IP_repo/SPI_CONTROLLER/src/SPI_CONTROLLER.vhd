@@ -98,7 +98,7 @@ entity spi_controller is
         TIMESTAMP_WORDS : natural := 4;                 -- How many of 16 bits words the timestamp holds. 
                                                         -- ie, if timestmap is 64 bits, the timestamp words will be 4
         RESET_WAIT_CYCLES   : natural := 10_000_000;    -- ~100 ms @ 100 MHz.  from data sheet
-        GENERAL_WAIT_CYCLES : natural := 10_000_000      -- ~10 ms @ 100 MHz — every other wait_after row + mag retry
+        GENERAL_WAIT_CYCLES : natural := 10_000_000     -- ~100 ms @ 100 MHz — every other wait_after row + mag retry
     
     );
 
@@ -127,9 +127,9 @@ entity spi_controller is
         read_byte         : in  std_logic_vector(7 downto 0);
 
         -- Debuging interface 
-        spi_failure : out std_logic;
-        setup_idx_dbg : out std_logic_vector(7 downto 0);
-        setup_done_dbg    : out    std_logic
+        spi_failure       : out std_logic;
+        setup_idx_dbg     : out std_logic_vector(7 downto 0);
+        setup_done_dbg    : out std_logic
     );
 end entity spi_controller;
 
@@ -137,8 +137,9 @@ end entity spi_controller;
 architecture rtl of spi_controller is
 -- Contants --------------------------------------------------------
     -- Word width
-    constant WORD_WIDTH    : natural := 16;       -- Word width of each data point. IMU is 16 bits for each word. 
-    constant RESET_ROW_IDX : natural := 2;        -- Reset row index inside the sequance table
+    constant WORD_WIDTH         : natural := 16;       -- Word width of each data point. IMU is 16 bits for each word. 
+    constant RESET_ROW_IDX      : natural := 2;        -- Reset row index inside the sequance table
+    constant MAF_CONFIG_ROW_IDX : natural := 15;       --  row index inside the sequance table of the start of the mag config
     -- Commands
     constant READ_COM  : std_logic_vector(7 downto 0) := x"80";                   -- read command
     constant WRITE_COM : std_logic_vector(7 downto 0) := x"00";                   -- write command
@@ -189,7 +190,7 @@ architecture rtl of spi_controller is
         (SETUP_WRITE,       REG_BANK_SEL, ICM20948_BANK_0, '0'),  -- 14) restore Bank 0 -- Starting Mag Config
 
         -- MAG Config
-        (SETUP_WRITE,       x"03", x"22", '1'),                   -- 16) I2C_MST_EN=1 | I2C_MST_RST=1 -- reset the aux I2C state machine (self-clearing), then wait
+        (SETUP_WRITE,       x"03", x"22", '1'),                   -- 15) I2C_MST_EN=1 | I2C_MST_RST=1 -- reset the aux I2C state machine (self-clearing), then wait
         --(SETUP_READ_VERIFY, x"03", x"20", '0'),                   -- 17) confirm I2C_MST_RST self-cleared (0x20 == master enabled, reset done
 
         (SETUP_WRITE,       x"03", x"20", '0'),                   -- 15) Enable internal I2C Master of ICM20948
@@ -348,7 +349,7 @@ begin
                                 m_axis_spi_tlast_r_setup  <= '0';
                                 setup_state               <= SETUP_DATA;
                             else
-                                setup_state <= SETUP_DONE ;
+                                setup_state <= SETUP_DONE;     -- in case we are somming from verify or wait, then no handshake and we are done
                             end if;
                                 
                         elsif m_axis_spi_tvalid_r_setup = '1' and m_axis_spi_tready = '1' then
@@ -361,8 +362,9 @@ begin
                                 m_axis_spi_tvalid_r_setup <= '1'; 
                                 m_axis_spi_tlast_r_setup  <= '0';
                                 setup_state               <= SETUP_DATA;
-                            else
-                                setup_state <= SETUP_DONE ;
+                            else -- last data point has been received by the master, set valid to 0, and no need to check the next state if the spi is done. it will be checked either way in the running fsm.
+                                m_axis_spi_tvalid_r_setup <= '0';                               -- This was a bug, this line was missing, the valid flag was kept high after the recepince handshake of the last data point
+                                setup_state               <= SETUP_DONE ;                       -- hand shake occured and the last data byte was sent
                             end if;
                         end if;
 
@@ -378,7 +380,6 @@ begin
 
                             m_axis_spi_tvalid_r_setup <= '1';
                             m_axis_spi_tlast_r_setup  <= '1';
-
 
                             if SETUP_SEQUENCE(setup_idx).op = SETUP_WRITE then
                                 if SETUP_SEQUENCE(setup_idx).wait_after = '0' then 
@@ -406,16 +407,19 @@ begin
 
                     when SETUP_VERIFY =>  -- wait till the spi finsih its transaction
                         if m_axis_spi_tready = '1' then  -- read byte finally here
-                            m_axis_spi_tvalid_r_setup <= '0';    
+                            m_axis_spi_tvalid_r_setup <= '0';     --  repeated, does nothing, but good for clearityy
                             if read_byte /= SETUP_SEQUENCE(setup_idx).data then
-                                spi_failure_r <=  '1';  -- Freeze the FSM and do nothing just the flag
+                                spi_failure_r <=  '1';  
                                 
-                                if setup_idx > 15 then 
-                                    setup_idx <= 16;
+                                if setup_idx > MAF_CONFIG_ROW_IDX then 
+                                    setup_idx   <= MAF_CONFIG_ROW_IDX;  -- restart at the first cmd of mag config section
+                                    setup_state <= SETUP_CMD;           -- this was a bug, this line was missing, i was reseting the index to restart the setup sequence but never reseted the state back to SETUP_CMD. - now we have a loop till done
                                 else
-                                    setup_idx <= 0;
+                                    setup_idx     <= 0;                 -- resart from the begining
+                                    setup_state   <= SETUP_CMD;         -- this was a bug, this line was missing, i was reseting the index to restart the setup sequence but never reseted the state back to SETUP_CMD. - now we have a loop till done
                                 end if;
                             else
+                                spi_failure_r <=  '0';                    -- if passed remove the failuire flag
                                 setup_idx     <= setup_idx + 1;
                                 setup_state   <= SETUP_CMD;
                             end if;
@@ -472,7 +476,7 @@ begin
             else
                 case running_state is
                     when IDLE => 
-                        if imu_int_ff2_dly = '0' and imu_int_ff2 = '1' and setup_state = SETUP_DONE then
+                        if imu_int_ff2_dly = '1' and imu_int_ff2 = '0' and setup_state = SETUP_DONE then  -- rising edge
                             -- latch the time stamp from 47 down to 0
                             timestamp_r <= timestamp(((TIMESTAMP_WORDS - 1) * WORD_WIDTH) - 1 downto 0);            -- no need to subtract 2 from the time stamp for the delay of the two sync flip flops. 
                                                                                                                     -- This because dt wil be the differnce between timestamps. so the twos will cross out .
@@ -481,7 +485,6 @@ begin
                             m_axis_fifo_tvalid_r <= '1';
                             m_axis_fifo_tlast_r  <= '0';
                             ts_word_counter      <= ts_word_counter + 1;
-                            
                             running_state        <= SENDING_TS;
                         end if;
 
@@ -492,18 +495,22 @@ begin
                                 m_axis_fifo_tvalid_r <= '1';
                                 m_axis_fifo_tlast_r  <= '0';
                                 ts_word_counter      <= ts_word_counter + 1;                     -- updating words counter counter
+
+                                running_state        <= SENDING_TS;
                             end if;
                         else 
-                            ts_word_counter <= 0;
-                            if m_axis_fifo_tready = '1' and m_axis_fifo_tvalid_r = '1' then    -- hand shake of the last word
+                            -- ts_word_counter <= 0;  -- first bug found. don't reset teh counter unless the handshake occurs
+                            if m_axis_fifo_tready = '1' and m_axis_fifo_tvalid_r = '1' then    -- hand shake of the last word occured
                                 m_axis_fifo_tvalid_r <= '0';
 
                                 -- Sending the read command to the spi
                                 m_axis_spi_tdata_r_running  <= (READ_COM or ICM20948_ACCEL_XOUT_H);
                                 m_axis_spi_tvalid_r_running <= '1';
                                 m_axis_spi_tlast_r_running  <= '0';
+                                ts_word_counter <= 0;                                               -- correct place of this line
                                 running_state  <= SENDING_DUMMY;
-                            end if;
+                             end if;
+
                         end if;
 
                     when SENDING_DUMMY => 
@@ -569,7 +576,7 @@ begin
                                             second_read         <= not second_read;
 
                                             if second_read = '1' then
-                                                if read_bytes_counter > 14 then   -- byte swaping for IMU
+                                                if read_bytes_counter > 14 then   -- byte swaping for mag litle endian, while imu is big
                                                     m_axis_fifo_tdata_r <= read_byte & read_byte_r;
                                                 else 
                                                     m_axis_fifo_tdata_r <= read_byte_r & read_byte;
@@ -586,7 +593,8 @@ begin
                                 end if;
                             end if;
                         else
-                            read_bytes_counter  <= 0;
+                            read_bytes_counter  <=  0;
+                            second_read         <= '0';                                            
                             running_state       <= IDLE;
                         end if;
 

@@ -1,12 +1,37 @@
 # IMU Kalman Filter on FPGA using High-Level Synthesis
 
-## Overview
+Bachelor thesis project on implementing IMU sensor fusion with a Kalman
+filter on an FPGA, using High-Level Synthesis (HLS). The project runs the
+full pipeline start to finish: benchmarking candidate IMUs, acquiring
+sensor data on real hardware, designing and validating the filter in
+software, and finally accelerating it on FPGA fabric.
 
-This repository contains the work and documentation for my Bachelor Thesis, which focuses on the implementation of IMU sensor fusion using a Kalman filter on an FPGA platform using High-Level Synthesis (HLS).
+Supervisor: Prof. Lutz Leutelt
 
-The goal of the project is to investigate how sensor fusion algorithms for Inertial Measurement Units (IMUs) can be efficiently implemented on FPGA hardware using modern open-source toolchains and high-level design methods.
+---
 
-The project explores the full pipeline starting from sensor data acquisition, through algorithm development and validation in software, to hardware acceleration on FPGA.
+## Repository Structure
+
+```
+IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/
+├── Code/
+│   ├── ESP32/                FreeRTOS ESP32 firmware for IMU benchmarking
+│   └── PCsetup/
+│       ├── PCsetup4ESP32/     Allan variance streamlit benchmarking dashboard
+│       └── PCsetup4FPGA/      UART decode, unit conversion, live pipeline
+├── DataSheets/               Datasheets for every sensor in use
+├── FPGA/                     Vivado project recreation, IP repo, block design, TCLs and more. Pls See FPGA/README.md
+├── Literature/                Reference material, Kalman filter design notebook
+├── Presentation/
+└── README.md                  This file
+```
+
+`FPGA/README.md` covers the FPGA acquisition pipeline in full detail:
+architecture, IP cores, build instructions, and the PC-side decode
+pipeline. 
+
+---
+
 
 ## WBS
 
@@ -60,3 +85,72 @@ direction LR
     Performance_Evaluation --> FPGA_HLS_Implementation
     Performance_Evaluation --> Commercial_IMU_Comparison```
 ```
+
+## Where things stand
+
+- **IMU benchmarking** — done. Three candidate IMUs logged simultaneously
+  on an ESP32, compared by Allan variance.
+- **FPGA acquisition pipeline** — done, end to end. ICM-20948 over SPI,
+  timestamped, framed, streamed over UART, decoded and converted to
+  physical units on the PC. See `FPGA/README.md`.
+- **Kalman filter design** — done. The filter design itself (state
+  vector, process and measurement models) is finished, worked out in
+  `Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`.
+  What is left is fine-tuning against real logged sensor data in Python.
+- **HLS conversion** — not started yet. Follows once the Python filter is
+  tuned and validated against real data from the FPGA pipeline.
+
+---
+
+## Phase 1: IMU Benchmarking
+
+Before committing to a sensor for the FPGA build, three IMUs were
+benchmarked against each other by Allan variance: the MPU6050, the
+ICM-20948, and the WitMotion WT901.
+
+An ESP32 (`Code/ESP32/ESP32_data_Aquisition/`) reads all three sensors in
+parallel on a 1kHz hardware timer, using a FreeRTOS producer or consumer
+pair of tasks (a collector task filling triple-buffered frames, a logger
+task writing them to SD card) so sampling stays on schedule even while the
+SD card is being written to. Each 50-byte frame holds a 64-bit
+microsecond timestamp plus raw accel, gyro, and temperature counts from
+all three IMUs.
+
+`Code/PCsetup/PCsetup4ESP32/AllenVarianceBenchmarkingDashboard/` is a
+Streamlit dashboard that loads a recorded `DATA.BIN` file, scales each
+sensor into physical units, and computes Allan deviation per axis per
+sensor, extracting ARW, bias instability, and rate random walk for direct
+comparison. Run it with:
+
+```
+streamlit run dashboardV2.py
+```
+
+`decoder.py` in the same folder is a small standalone script for
+inspecting a `.BIN` file's frame headers directly, useful for quick
+sanity checks without opening the full dashboard.
+
+The full methodology (outlier handling, the WT901's native versus logged
+sample rate, bandwidth normalization) is documented inline in
+`data_engine_V2.py`
+
+---
+
+## Phase 2: FPGA Acquisition Pipeline
+
+Covered in full in `FPGA/README.md`. In short: an ICM-20948 is read over
+SPI at 1.125kHz, timestamped, framed into a checksummed protocol, and
+streamed to a PC over UART. `Code/PCsetup/PCsetup4FPGA/` decodes that
+stream, dispatches on frame mode, and converts raw register counts into
+physical units, ready for the Kalman filter.
+
+---
+
+## Phase 3: Kalman Filter and HLS
+
+The filter design is complete, and its derivation lives in
+`Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`.
+Current work is fine-tuning it in Python against real data captured
+through the FPGA pipeline above, rather than synthetic input. Once tuned
+and validated, the next stage is porting the filter to HLS for FPGA
+acceleration.

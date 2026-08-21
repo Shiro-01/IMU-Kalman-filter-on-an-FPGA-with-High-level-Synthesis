@@ -1,0 +1,55 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Tue Aug 18 18:31:29 2026
+[*]
+[dumpfile] "/Users/abdelrahmanhewala/Documents/IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/FPGA/IP_repo/UART_CONTROLLER/sim/wave.fst"
+[dumpfile_mtime] "Tue Aug 18 18:15:50 2026"
+[dumpfile_size] 948
+[savefile] "/Users/abdelrahmanhewala/Documents/IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/FPGA/IP_repo/UART_CONTROLLER/sim/wave.gtkw"
+[timestart] 570480000
+[size] 1728 1080
+[pos] -1 -2
+*-23.000000 573700000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[sst_width] 336
+[signals_width] 218
+[sst_expanded] 1
+[sst_vpaned_height] 327
+@28
+dut.clk
+dut.rst_n
+dut.state
+@200
+-
+-
+@22
+[color] 2
+dut.s_axis_fifo_tdata[15:0]
+@28
+[color] 2
+dut.s_axis_fifo_tlast
+[color] 2
+dut.s_axis_fifo_tready
+[color] 2
+dut.s_axis_fifo_tvalid
+@200
+-
+-
+@22
+[color] 3
+dut.m_axis_tdata[15:0]
+@28
+[color] 3
+dut.m_axis_tready
+[color] 3
+dut.m_axis_tvalid
+@200
+-
+-
+@22
+dut.chk_word[15:0]
+@28
+dut.received_word_tlast_reg
+@22
+dut.received_word[15:0]
+[pattern_trace] 1
+[pattern_trace] 0
