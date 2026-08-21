@@ -13,5 +13,5 @@ Literature/KalmanFilter/Fundamentals_of_Kalman_Filtering.pdf
 Literature/ThesisGuideLines/
 
 /FPGA/drafts/
-*/_pycache_/
+*/__pycache__/
 Presentation
