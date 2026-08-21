@@ -108,7 +108,8 @@ benchmarked against each other by Allan variance: the MPU6050, the
 ICM-20948, and the WitMotion WT901.
 
 An ESP32 (`Code/ESP32/ESP32_data_Aquisition/`) reads all three sensors in
-parallel on a 1kHz hardware timer, using a FreeRTOS producer consumer
+
+parallel on a 1kHz hardware timer, using a FreeRTOS producer, consumer 
 pair of tasks (a collector task filling triple-buffered frames, a logger
 task writing them to SD card) so sampling stays on schedule even while the
 SD card is being written to. Each 50-byte frame holds a 64-bit
