@@ -7,19 +7,6 @@ the design in EKF_IMU_Paper.pdf (Euler angles, ZYX order, 9-DOF).
 State vector: x = [phi, theta, psi, bx, by, bz]  (roll, pitch, yaw, rad;
 gyro bias, rad/s)
 
-Every Jacobian used here (Ha, Hm, and the dG(w-b)/dTheta block of Fc) was
-numerically verified against finite-differences before being written into
-this file -- not just hand-derived algebra. See the conversation history
-for the verification, or re-run it yourself before trusting a change here.
-
-Two of the paper's equations use different magnetometer conventions
-(Section 1.4.2's full-magnitude mn = [mN, 0, mD] vs Section 2.5.2's
-normalized mn = [cos(delta), 0, sin(delta)]). This implementation uses the
-full-magnitude form throughout, to stay consistent with DataPreparer.
-initialize(), which was built and verified against that same convention.
-Using the normalized form here instead would silently break the update
-step, since mx/my/mz arrive in physical uT, not normalized units.
-
 @author  Abdelrahman Hewala
 @date    2026
 """
@@ -28,7 +15,7 @@ from dataclasses import dataclass
 from typing import Optional
 import numpy as np
 
-from data_preparer import PreparedSample
+from frame_types import PreparedSample
 
 
 @dataclass
