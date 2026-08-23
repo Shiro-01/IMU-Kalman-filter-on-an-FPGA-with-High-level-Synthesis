@@ -22,25 +22,7 @@ TIMESTAMP_CYCLE_PERIOD = 10    # in nano seconds
 from dataclasses import dataclass
 from typing import Optional
 
-from frame_types import RawSampleMode0 #, RawSampleMode1
-
-
-@dataclass
-class PhysicalSampleMode0:
-    """One converted MODE_0 sample, in physical units."""
-    t: float           # seconds
-    ax: float          # m/s2
-    ay: float          # m/s2
-    az: float          # m/s2
-    gx: float          # rads/s
-    gy: float          # rads/s
-    gz: float          # rads/s
-    temp: float        # deg C
-    mx: float          # physical field units (uT)
-    my: float          # physical field units (uT)
-    mz: float          # physical field units (uT)
-    mag_state: int     # passed through unconverted -- status flags word.
-
+from frame_types import RawSampleMode0, PhysicalSampleMode0 #, RawSampleMode1
 
 class SampleConverter:
     """
