@@ -1,15 +1,3 @@
-[submodule "Code/PCsetup/magnetometer_calibration"]
-	path = Code/PCsetup/magnetometer_calibration
-	url = https://github.com/nliaudat/magnetometer_calibration.git
-[submodule "Code/PCsetup/caliberation/magnetometer_calibration"]
-	path = Code/PCsetup/caliberation/magnetometer_calibration
-	url = https://github.com/nliaudat/magnetometer_calibration.git
-[submodule "Code/PCSetup/caliberation/Code/PCsetup/calibration/magnetometer_calibration"]
-	path = Code/PCSetup/caliberation/Code/PCsetup/calibration/magnetometer_calibration
-	url = https://github.com/nliaudat/magnetometer_calibration.git
-[submodule "Code/PCSetup/caliberation/Code/PCsetup/calibr4ation/magnetometer_calibration"]
-	path = Code/PCSetup/caliberation/Code/PCsetup/calibr4ation/magnetometer_calibration
-	url = https://github.com/nliaudat/magnetometer_calibration.git
-[submodule "Code/PCSetup/caliberation/magnetometer_calibration"]
-	path = Code/PCSetup/caliberation/magnetometer_calibration
+[submodule "Code/PCsetup/calibration/magnetometer_calibration"]
+	path = Code/PCsetup/calibration/magnetometer_calibration
 	url = https://github.com/nliaudat/magnetometer_calibration.git
