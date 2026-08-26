@@ -1,3 +1,6 @@
 [submodule "Code/PCsetup/magnetometer_calibration"]
 	path = Code/PCsetup/magnetometer_calibration
 	url = https://github.com/nliaudat/magnetometer_calibration.git
+[submodule "Code/PCsetup/caliberation/magnetometer_calibration"]
+	path = Code/PCsetup/caliberation/magnetometer_calibration
+	url = https://github.com/nliaudat/magnetometer_calibration.git
