@@ -6,8 +6,9 @@ conversion logic based on which type it receives).
 """
 
 from typing import NamedTuple
+from dataclasses import dataclass
 
-
+@dataclass
 class RawSampleMode0(NamedTuple):
     """One decoded MODE_0 frame (IMU data, EKF bypassed), in raw register
     counts. matches struct.unpack('>Q10hH', payload)."""
@@ -25,6 +26,7 @@ class RawSampleMode0(NamedTuple):
     mag_state: int
 
 
+@dataclass
 class PhysicalSampleMode0:
     """One converted MODE_0 sample, in physical units."""
     t: float           # seconds
@@ -54,6 +56,7 @@ class PreparedSample:
     mx: float            # uT, hard/soft-iron corrected
     my: float
     mz: float
+    temp: float
     mag_fresh: bool      # True if this mag reading should drive an update this step
 
 

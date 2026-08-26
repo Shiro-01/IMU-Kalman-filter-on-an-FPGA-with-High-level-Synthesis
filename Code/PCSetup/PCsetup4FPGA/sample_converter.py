@@ -12,17 +12,10 @@ the output is an instantant of either PhysicalSampleMode0 class or PhysicalSampl
 * @date    2026
 """
 
-# Constants 
-ACC_LSBs_PER_1_G  = 2048       # LSBs/g.   - ±16g
-GYRO_LSBs_PER_DPS = 16.4       #LSBs/(dps) - ±2000dps
-MAG_LSB = 0.15                 # µT/LSB, fixed per AK09916 spec
-TIMESTAMP_CYCLE_PERIOD = 10    # in nano seconds 
-
-
 from dataclasses import dataclass
 from typing import Optional
 
-from frame_types import RawSampleMode0, PhysicalSampleMode0 #, RawSampleMode1
+from frame_types import RawSampleMode0, PhysicalSampleMode0 #, RawSampleMode1. # this should be added once done
 
 class SampleConverter:
     """
