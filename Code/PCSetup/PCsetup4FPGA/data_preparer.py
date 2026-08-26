@@ -80,8 +80,6 @@ class DataPreparer:
             np.eye(3) if soft_iron_matrix is None
             else np.array(soft_iron_matrix, dtype=float)
         )
-        self.mN = mag_field_horizontal_uT
-        self.mD = mag_field_vertical_uT
         self.mag_fresh_update_period = mag_fresh_update_period
         self.init_window_samples = init_window_samples
         self.g = gravity
