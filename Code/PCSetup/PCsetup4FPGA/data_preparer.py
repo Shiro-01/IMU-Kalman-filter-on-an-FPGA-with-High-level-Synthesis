@@ -25,6 +25,7 @@ import numpy as np
 from frame_types import PreparedSample, PhysicalSampleMode0
 
 
+INT_MIN_WINDOW = 100
 
 class DataPreparer:
     """
@@ -35,13 +36,14 @@ class DataPreparer:
 
     def __init__(
         self,
+        gyro_ARW : Sequence[float],
         hard_iron_offset: Sequence[float] = (0.0, 0.0, 0.0),
         soft_iron_matrix: Optional[Sequence[Sequence[float]]] = None,
         accel_bias_offset: Optional[Sequence[float]] = (0.0, 0.0, 0.0),           # Fixed offset of the ACC for each axis (bax, bay, baz)
         mag_field_horizontal_uT: float = 18.54,   # mN, Hamburg WMM 2025-2026
         mag_field_vertical_uT: float = 45.88,     # mD, Hamburg WMM 2025-2026
-        init_window_samples: int = 100,
         gravity: float = 9.81,
+        sampling_freq: float = 1125.0             # sampling freq in Hz
     ):
         """
         hard_iron_offset     : 3-vector subtracted from raw mag counts (uT),
@@ -54,10 +56,6 @@ class DataPreparer:
         mag_field_horizontal_uT, mag_field_vertical_uT :
                                 mN, mD from the WMM at the operating location.
                                 Defaults are Hamburg, 2025-2026.
-        mag_fresh_timeout_s   : force a mag update at least this often, even
-                                if consecutive readings are bit-identical.
-        init_window_samples   : number of stationary samples averaged in
-                                initialize() for phi0, theta0, psi0, bias0.
         gravity               : standard gravity, m/s^2.
         """
         self.hard_iron = np.array(hard_iron_offset, dtype=float)
@@ -65,18 +63,19 @@ class DataPreparer:
             np.eye(3) if soft_iron_matrix is None
             else np.array(soft_iron_matrix, dtype=float)
         )
-        self.init_window_samples = init_window_samples
         self.g = gravity
         self.mN = mag_field_horizontal_uT
         self.mD = mag_field_vertical_uT
         self.accel_bias_offset = accel_bias_offset
         self._last_sample_t: float = None
+        self.gyro_ARW = np.array(gyro_ARW)
+        self.fs = sampling_freq
 
     def _correct_mag(self, mx: float, my: float, mz: float) -> np.ndarray:
         raw = np.array([mx, my, mz], dtype=float)
         return self.soft_iron @ (raw - self.hard_iron)
 
-    def initialize(self, samples: List[PhysicalSampleMode0]) -> np.ndarray:
+    def initialize(self, samples: List[PhysicalSampleMode0]):
         """
         Computes the initial state vector [phi, theta, psi, bx, by, bz]
         from a window of stationary samplesstructed.
@@ -91,10 +90,11 @@ class DataPreparer:
         this is not valid right at theta0 = +-90 degrees, the same gimbal
         lock region where the G matrix itself is singular.
         """
-        window = samples[: self.init_window_samples]
-        if len(window) < self.init_window_samples:
+        window = samples[: INT_MIN_WINDOW]
+        samples_count = len(window)
+        if samples_count < INT_MIN_WINDOW:
             raise ValueError(
-                f"initialize() needs at least {self.init_window_samples} samples, "
+                f"initialize() needs at least {INT_MIN_WINDOW} samples, "
                 f"got {len(window)}"
             )
 
@@ -119,8 +119,12 @@ class DataPreparer:
         psi0 = np.arctan2(sin_psi, cos_psi)
 
         x0 = np.array([phi0, theta0, psi0, gx, gy, gz])
-        self-_last_sample_t = samples[-1].t
-        return x0
+        self._last_sample_t = samples[-1].t
+
+        bias_sigma = self.gyro_ARW * np.sqrt(self.fs/samples_count)
+        
+        p0 = np.diag([np.radians(1),np.radians(1),np.radians(1), bias_sigma[0], bias_sigma[1], bias_sigma[2]])**2
+        return x0, p0
 
     def prepare(self, sample: PhysicalSampleMode0) -> PreparedSample:
         """

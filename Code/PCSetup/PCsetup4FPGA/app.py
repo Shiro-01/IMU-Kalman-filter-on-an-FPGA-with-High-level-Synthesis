@@ -16,7 +16,7 @@ from UARTFPGA_reader import read_packet
 from typing import List
 from data_preparer import DataPreparer
 from frame_types import PhysicalSampleMode0
-from EKF import EKF
+from EKF import EKF #, EKFResult
 import numpy as np
 
 # Constants 
@@ -40,6 +40,14 @@ SOFT_IRON_MATRIX = [[ 1.176901,  0.015028,  0.004831],
                     [ 0.015028,  1.285583, -0.103001],
                     [ 0.004831, -0.103001,  1.311687],
                 ]
+
+
+
+GYRO_ARW = [0.000134255, 0.000122338, 0.000129317]
+GYRO_BI = [4.28161e-5, 4.02741e-05, 4.48088e-05]
+
+ACCEL_DEV = [0.0625, 0.0625, 0.0625]
+MAG_DEV = [2, 2, 2]
 
 def main():
     try:
@@ -72,17 +80,20 @@ def main():
         samples_init_arr.append(physicalSampleMode0_x)
 
     # Initial state vector as np vector
-    x0 = datePreparer.initialize(samples_init_arr)
+    x0, p0 = datePreparer.initialize(samples_init_arr)
 
-    # p0 = numpy.array()
-    p0 = np.diag([
-        sigma_theta0**2, sigma_theta0**2, sigma_psi0**2,   # phi, theta, psi
-        sigma_b0**2, sigma_b0**2, sigma_b0**2,               # bx, by, bz
-    ])
+    ekf = EKF(
+        x0 = x0,
+        p0 = p0,
+        gyro_ARW = GYRO_ARW,
+        gyro_bias_instability = GYRO_BI,
+        accel_dev = ACCEL_DEV,
+        mag_dev   = MAG_DEV,
+    )
 
     while True:
-
-        print(modeWord, samplesMode0.ts, physicalSampleMode0_x)
+        ekf_result = ekf.step()
+        print(ekf_result.x, ekf_result.P, ekf_result.innovation, ekf_result.used_mag)
 
 
 if __name__ == "__main__":
