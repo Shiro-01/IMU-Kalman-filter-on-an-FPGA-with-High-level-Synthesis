@@ -1,8 +1,7 @@
 """"
  * @file    app.py
- * @brief   This app uses the sample_converter and UARTFPGA reader to parse & convert the IMU data
- *          comming from the FPGA through UART Protocol to a physical data. then get prepared to KF by data_preparer class then
- *          goes to EKF that predicts our eular angles
+ * @brief   This app uses the sample_converter cladd and UARTFPGA reader to parse & convert the IMU data
+ *          comming from the FPGA through UART Protocol to a physical data.
  *
  *
  * @author  Abdelrahman Hewala
@@ -13,11 +12,6 @@ import serial
 from sample_converter import SampleConverter
 import sys
 from UARTFPGA_reader import read_packet
-from typing import List
-from data_preparer import DataPreparer
-from frame_types import PhysicalSampleMode0
-from EKF import EKF
-import numpy as np
 
 # Constants 
 ACC_LSB_PER_1_G  = 2048.0             # LSBs/g.   - ±16g
@@ -33,13 +27,6 @@ BAUDRATE = 1152000
 PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
 BYTESIZE = serial.EIGHTBITS
-
-# Caliberation data
-HARD_IRON_OFFSET = [-31.741723, -24.290997, 22.052194] # uT
-SOFT_IRON_MATRIX = [[ 1.176901,  0.015028,  0.004831],
-                    [ 0.015028,  1.285583, -0.103001],
-                    [ 0.004831, -0.103001,  1.311687],
-                ]
 
 def main():
     try:
@@ -57,31 +44,16 @@ def main():
         print("Run: ls /dev/ | grep -i usb")
         sys.exit(1)
 
-    # instantiateof the classes class
+    # instantiate the converter class
     sampleConverter = SampleConverter(ACC_LSB_PER_1_G, GYRO_LSB_PER_DPS, TIMESTAMP_CLK_FREQ, MAG_LSB, TEMP_LSB_PER_C, TEMP_OFFSET)
-    datePreparer = DataPreparer(hard_iron_offset = HARD_IRON_OFFSET, soft_iron_matrix = SOFT_IRON_MATRIX)
-
-    # first 100 smaples for preperation class initialize method
-    samples_init_arr : List[PhysicalSampleMode0]  = None
-    for i in range(1000) :
+        
+    while True:
         result = read_packet(ser)
         if result is None:
             continue
         modeWord, samplesMode0 = result
+
         physicalSampleMode0_x = sampleConverter.convert(samplesMode0)
-        samples_init_arr.append(physicalSampleMode0_x)
-
-    # Initial state vector as np vector
-    x0 = datePreparer.initialize(samples_init_arr)
-
-    # p0 = numpy.array()
-    p0 = np.diag([
-        sigma_theta0**2, sigma_theta0**2, sigma_psi0**2,   # phi, theta, psi
-        sigma_b0**2, sigma_b0**2, sigma_b0**2,               # bx, by, bz
-    ])
-
-    while True:
-
         print(modeWord, samplesMode0.ts, physicalSampleMode0_x)
 
 

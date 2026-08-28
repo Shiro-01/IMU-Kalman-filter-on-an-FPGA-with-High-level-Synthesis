@@ -38,7 +38,7 @@ def compute_checksum(payload, length):
         chk ^= word
     return chk
 
-def read_packet(ser : serial.Serial) : 
+def read_packet(ser : serial.Serial): 
     # Resync: slide one byte at a time until SYNC1 immediately followed by SYNC2
     prev = None
     while True:
@@ -80,5 +80,3 @@ def read_packet(ser : serial.Serial) :
     fmt, sample_cls = entry
     values = struct.unpack(fmt, payload)
     return modeWord, sample_cls(*values)
-
-

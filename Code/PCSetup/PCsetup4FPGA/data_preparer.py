@@ -9,27 +9,13 @@ Prepares physical-unit IMU samples for the EKF:
 
 Hard/soft-iron constants are supplied at construction, not computed here.
 Calibration itself is a separate one-off tool, kept deliberately out of
-this class: a fixed offset-subtract plus 3x3 matrix-multiply is simple to
-carry into HLS later, an iterative ellipsoid-fit calibration routine is
-not something that belongs anywhere near that path.
+this class.
 
 @author  Abdelrahman Hewala
+@note    Supervisor: Prof. Lutz Leutelt
 @date    2026
 """
 
-
-
-""""
- * @file    data_preparer.py
-
- * @brief   This app uses the sample_converter cladd and UARTFPGA reader to parse & convert the IMU data
- *          comming from the FPGA through UART Protocol to a physical data.
- *
- *
- * @author  Abdelrahman Hewala
- * @note    Supervisor: Prof. Lutz Leutelt
- * @date    2026
-"""
 
 
 from dataclasses import dataclass
@@ -54,7 +40,6 @@ class DataPreparer:
         accel_bias_offset: Optional[Sequence[float]] = (0.0, 0.0, 0.0),           # Fixed offset of the ACC for each axis (bax, bay, baz)
         mag_field_horizontal_uT: float = 18.54,   # mN, Hamburg WMM 2025-2026
         mag_field_vertical_uT: float = 45.88,     # mD, Hamburg WMM 2025-2026
-        mag_fresh_update_period: float = 0.010,   # mag set to mode 4 at 100 Hz
         init_window_samples: int = 100,
         gravity: float = 9.81,
     ):
@@ -80,14 +65,12 @@ class DataPreparer:
             np.eye(3) if soft_iron_matrix is None
             else np.array(soft_iron_matrix, dtype=float)
         )
-        self.mag_fresh_update_period = mag_fresh_update_period
         self.init_window_samples = init_window_samples
         self.g = gravity
+        self.mN = mag_field_horizontal_uT
+        self.mD = mag_field_vertical_uT
         self.accel_bias_offset = accel_bias_offset
-
-        self._last_mag_t       : Optional[float] = None        # Last received mag time stamp in sec
-        self._last_mag_raw     : Optional[tuple] = None        # Previous raw Mag Sample
-        self._last_fresh_mag_t : Optional[float] = None        # Time stamp of the last sample flagged Fresh in sec
+        self._last_sample_t: float = None
 
     def _correct_mag(self, mx: float, my: float, mz: float) -> np.ndarray:
         raw = np.array([mx, my, mz], dtype=float)
@@ -96,9 +79,7 @@ class DataPreparer:
     def initialize(self, samples: List[PhysicalSampleMode0]) -> np.ndarray:
         """
         Computes the initial state vector [phi, theta, psi, bx, by, bz]
-        from a window of stationary samples, per Step 8 of the design.
-        Does not compute P0 -- that comes from Allan variance, supplied
-        separately wherever the EKF itself is constructed.
+        from a window of stationary samplesstructed.
 
         Inverts the paper's own forward equations directly:
           theta0 = atan2(-ax, sqrt(ay^2 + az^2))
@@ -138,37 +119,20 @@ class DataPreparer:
         psi0 = np.arctan2(sin_psi, cos_psi)
 
         x0 = np.array([phi0, theta0, psi0, gx, gy, gz])
-
-        # Seed per-sample state so the first prepare() call has a sane
-        # dt and a mag-freshness baseline to compare against.
-        last_sample = window[-1]
-        self._last_mag_t = last_sample.t
-        self._last_mag_raw = (last_sample.mx, last_sample.my, last_sample.mz)
-        self._last_fresh_mag_t = last_sample.t
-
+        self-_last_sample_t = samples[-1].t
         return x0
 
     def prepare(self, sample: PhysicalSampleMode0) -> PreparedSample:
         """
         Converts one live sample into a PreparedSample: computes dt,
-        applies mag calibration, and flags whether this sample's mag
-        reading is fresh (raw reading changed since last, or the
-        mag_fresh_timeout_s since the last fresh reading has elapsed).
+        applies mag & Accel offset calibration.
         """
-        if self._last_mag_t is None:
-            raise RuntimeError("prepare() called before initialize()")
+        if self._last_sample_t is None:
+            raise RuntimeError(" call initialize() before prepare()")
 
-        dt = sample.t - self._last_mag_t
-        self._last_mag_t = sample.t
+        dt = sample.t - self._last_sample_t
+        self._last_sample_t = sample.t
 
-        raw_mag = (sample.mx, sample.my, sample.mz)
-        changed = raw_mag != self._last_mag_raw
-        timed_out = (sample.t - self._last_fresh_mag_t) >= self.mag_fresh_update_period
-        mag_fresh = changed or timed_out
-
-        if mag_fresh:
-            self._last_fresh_mag_t = sample.t
-        self._last_mag_raw = raw_mag
 
         mb = self._correct_mag(sample.mx, sample.my, sample.mz)
 
@@ -180,5 +144,5 @@ class DataPreparer:
             az=(sample.az - self.accel_bias_offset[2]),
             mx=float(mb[0]), my=float(mb[1]), mz=float(mb[2]),
             temp=sample.temp,
-            mag_fresh=mag_fresh,
+            mag_fresh=sample.mag_fresh,
         )

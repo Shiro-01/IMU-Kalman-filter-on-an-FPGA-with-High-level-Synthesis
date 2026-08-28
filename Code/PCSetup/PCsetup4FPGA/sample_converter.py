@@ -14,8 +14,10 @@ the output is an instantant of either PhysicalSampleMode0 class or PhysicalSampl
 
 from dataclasses import dataclass
 from typing import Optional
-
 from frame_types import RawSampleMode0, PhysicalSampleMode0 #, RawSampleMode1. # this should be added once done
+import time
+
+MAG_LOGGING_FREQ_HZ = 100  # 100 HZ
 
 class SampleConverter:
     """
@@ -28,7 +30,7 @@ class SampleConverter:
         accel_sensitivity_lsb_per_g  : float,
         gyro_sensitivity_lsb_per_dps : float,
         timestamp_ticks_per_second   : float,
-        mag_sensitivity_ut_per_lsb   : Optional[float] = None,
+        mag_sensitivity_ut_per_lsb   : float = 0.15,             # µT/LSB
         temp_sensitivity_lsb_per_c   : Optional[float] = None,
         temp_offset_c: float = 0.0,
     ):
@@ -46,6 +48,9 @@ class SampleConverter:
         self.mag_sens = mag_sensitivity_ut_per_lsb
         self.temp_sens = temp_sensitivity_lsb_per_c
         self.temp_offset = temp_offset_c
+
+        self.last_fresh_mag_t : float = 0.0
+        self.last_fresh_mag   : list[float] = [0.0, 0.0, 0.0]
 
         # Dispatch table: raw sample type -> conversion method. 
         # type is defined in frame_types.py.
@@ -78,16 +83,24 @@ class SampleConverter:
         else:
             temp = float(raw.temp)
 
-        if self.mag_sens is not None:
-            mx = raw.mx * self.mag_sens
-            my = raw.my * self.mag_sens
-            mz = raw.mz * self.mag_sens
-        else:
-            mx, my, mz = float(raw.mx), float(raw.my), float(raw.mz)
+        mx = raw.mx * self.mag_sens
+        my = raw.my * self.mag_sens
+        mz = raw.mz * self.mag_sens
 
+        # Hnadeling of the Valid flag
+        mag_reading = [mx, my, mz]
+        mag_changed = mag_reading != self.last_fresh_mag
+        timed_out = t - self.last_fresh_mag_t > (1 / MAG_LOGGING_FREQ_HZ )
+        mag_fresh = mag_changed or timed_out
+
+        if mag_fresh:
+            self.last_fresh_mag_t = t
+            self.last_fresh_mag   = mag_reading
+
+        # return
         return PhysicalSampleMode0(
             t=t, ax=ax, ay=ay, az=az,
             gx=gx, gy=gy, gz=gz,
             temp=temp, mx=mx, my=my, mz=mz,
-            mag_state=raw.mag_state,
+            mag_fresh=mag_fresh,
         )

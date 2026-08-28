@@ -8,7 +8,6 @@ conversion logic based on which type it receives).
 from typing import NamedTuple
 from dataclasses import dataclass
 
-@dataclass
 class RawSampleMode0(NamedTuple):
     """One decoded MODE_0 frame (IMU data, EKF bypassed), in raw register
     counts. matches struct.unpack('>Q10hH', payload)."""
@@ -40,10 +39,11 @@ class PhysicalSampleMode0:
     mx: float          # physical field units (uT)
     my: float          # physical field units (uT)
     mz: float          # physical field units (uT)
-    mag_state: int     # passed through unconverted -- status flags word.
+    mag_fresh: int     # passed through unconverted -- status flags word.
 
 
 # Prepared sample For EKF. Only used For Mode 0
+@dataclass
 class PreparedSample:
     """One sample, ready for the EKF predict/update step."""
     dt: float           # seconds since the previous sample
