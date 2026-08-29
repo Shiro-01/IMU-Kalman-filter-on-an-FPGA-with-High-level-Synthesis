@@ -28,7 +28,7 @@ TEMP_LSB_PER_C =  333.87
 TEMP_OFFSET = 21.0
 
 # UART Protocol Setting CONSTANTS 
-PORT     = 'COM4'                                      #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
+PORT     = '/dev/tty.usbserial-210183ACB00B1'                                      #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
 BAUDRATE = 1152000
 PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
@@ -67,10 +67,9 @@ def main():
 
     # instantiateof the classes class
     sampleConverter = SampleConverter(ACC_LSB_PER_1_G, GYRO_LSB_PER_DPS, TIMESTAMP_CLK_FREQ, MAG_LSB, TEMP_LSB_PER_C, TEMP_OFFSET)
-    datePreparer = DataPreparer(hard_iron_offset = HARD_IRON_OFFSET, soft_iron_matrix = SOFT_IRON_MATRIX)
-
+    datePreparer = DataPreparer(gyro_ARW = GYRO_ARW, hard_iron_offset=HARD_IRON_OFFSET, soft_iron_matrix=SOFT_IRON_MATRIX)
     # first 100 smaples for preperation class initialize method
-    samples_init_arr : List[PhysicalSampleMode0]  = None
+    samples_init_arr : List[PhysicalSampleMode0]  = []
     for i in range(1000) :
         result = read_packet(ser)
         if result is None:
@@ -92,9 +91,28 @@ def main():
     )
 
     while True:
-        ekf_result = ekf.step()
-        print(ekf_result.x, ekf_result.P, ekf_result.innovation, ekf_result.used_mag)
+        result = read_packet(ser)
+        if result is None:
+            continue
+        modeWord, samplesMode0 = result
+        physicalSampleMode0_x = sampleConverter.convert(samplesMode0)
+        preparedSample = datePreparer.prepare(physicalSampleMode0_x)
+        ekf_result = ekf.step(preparedSample)
+        print(np.array2string(ekf_result.X*180/np.pi, precision=2, floatmode='fixed', suppress_small=True), "\n")
 
+        gyro_dps = np.array([physicalSampleMode0_x.gx, physicalSampleMode0_x.gy, physicalSampleMode0_x.gz]) * 180/np.pi
+        print(np.array2string(gyro_dps, precision=2, floatmode='fixed', suppress_small=True), "\n")        
+        print(physicalSampleMode0_x.az, "\n")        
+        print(physicalSampleMode0_x.ay, "\n")        
+        print(physicalSampleMode0_x.ax, "\n")     
+
+        print(preparedSample.mx, "\n")        
+        print(preparedSample.my, "\n")        
+        print(preparedSample.mz, "\n")           
+
+
+        mb = np.array(SOFT_IRON_MATRIX) @ (np.array([physicalSampleMode0_x.mx, physicalSampleMode0_x.my, physicalSampleMode0_x.mz]) - np.array(HARD_IRON_OFFSET))
+        print(mb, np.linalg.norm(mb))
 
 if __name__ == "__main__":
     main()
