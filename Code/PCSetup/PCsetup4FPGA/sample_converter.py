@@ -70,13 +70,13 @@ class SampleConverter:
     def _convert_mode0(self, raw: RawSampleMode0) -> PhysicalSampleMode0:
         t = raw.ts / self.ts_ticks_per_sec
 
-        ax = raw.ax / self.accel_sens * 9.81   # m/s2
+        ax = - raw.ax / self.accel_sens * 9.81   # m/s2
         ay = raw.ay / self.accel_sens * 9.81   # m/s2
         az = raw.az / self.accel_sens * 9.81   # m/s2
 
         gx = raw.gx / self.gyro_sens * (3.14159265/180)  #rads/s
-        gy = raw.gy / self.gyro_sens * (3.14159265/180)  #rads/s
-        gz = raw.gz / self.gyro_sens * (3.14159265/180)  #rads/s
+        gy = - raw.gy / self.gyro_sens * (3.14159265/180)  #rads/s
+        gz = - raw.gz / self.gyro_sens * (3.14159265/180)  #rads/s
 
         if self.temp_sens is not None:
             temp = raw.temp / self.temp_sens + self.temp_offset
