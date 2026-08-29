@@ -39,7 +39,7 @@ TEMP_OFFSET = 21.0
 PROGRESS_EVERY_S = 5.0
 
 # UART Protocol Setting CONSTANTS 
-PORT     = 'COM4'                                      #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
+PORT     = '/dev/tty.usbserial-210183ACB00B1'   # "COM4"                                     #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
 BAUDRATE = 1152000
 PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
@@ -47,34 +47,8 @@ BYTESIZE = serial.EIGHTBITS
 
 
 
-class MagFreshnessTracker:
-    """Tracks magnetometer reading freshness. Mirrors DataPreparer.prepare()'s
-    algorithm exactly, as its own small standalone piece -- deliberately not
-    tied to DataPreparer, since that class needs calibration constants this
-    collection step doesn't have yet."""
-
-    def __init__(self, mag_fresh_timeout_s: float = 0.010):
-        self.mag_fresh_timeout_s = mag_fresh_timeout_s
-        self._last_mag_raw: Optional[Tuple[float, float, float]] = None
-        self._last_fresh_t: Optional[float] = None
-
-    def is_fresh(self, t: float, mx: float, my: float, mz: float) -> bool:
-        raw_mag = (mx, my, mz)
-        if self._last_mag_raw is None:
-            fresh = True  # first sample ever, nothing to compare against yet
-        else:
-            changed = raw_mag != self._last_mag_raw
-            timed_out = (t - self._last_fresh_t) >= self.mag_fresh_timeout_s
-            fresh = changed or timed_out
-        if fresh:
-            self._last_fresh_t = t
-        self._last_mag_raw = raw_mag
-        return fresh
-
-
 def run_logger() -> None:
     converter =  SampleConverter(ACC_LSB_PER_1_G, GYRO_LSB_PER_DPS, TIMESTAMP_CLK_FREQ, MAG_LSB, TEMP_LSB_PER_C, TEMP_OFFSET)
-    tracker = MagFreshnessTracker()
 
     ser = serial.Serial(
         port=PORT,
@@ -103,7 +77,7 @@ def run_logger() -> None:
                 physical = converter.convert(raw)
                 n_seen += 1
 
-                if tracker.is_fresh(physical.t, physical.mx, physical.my, physical.mz):
+                if physical.mag_fresh:
                     f.write(f"{physical.mx},{physical.my},{physical.mz}\n")
                     n_fresh += 1
 
