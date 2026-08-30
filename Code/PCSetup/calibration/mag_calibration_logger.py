@@ -3,6 +3,7 @@
  *
  * @brief   Live logger for magnetometer hard/soft-iron calibration data
  *          collection. 
+ * python calibrate.py -f ../data/mag_cali.txt --plot --field 49.47
  *
  * @author  Abdelrahman Hewala
  * @note    Supervisor: Prof. Lutz Leutelt
