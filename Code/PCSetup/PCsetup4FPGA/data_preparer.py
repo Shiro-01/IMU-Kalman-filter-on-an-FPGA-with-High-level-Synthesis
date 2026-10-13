@@ -106,9 +106,26 @@ class DataPreparer:
         gy = float(np.mean([s.gy for s in window]))
         gz = float(np.mean([s.gz for s in window]))
 
-        mx = float(np.mean([s.mx for s in window]))
-        my = float(np.mean([s.my for s in window]))
-        mz = float(np.mean([s.mz for s in window]))
+        #extracting the valid values only wia mag fresh flG
+        mx_sum = 0.0; my_sum = 0.0; mz_sum = 0.0
+        mag_count = 0
+        last_mag = None
+
+        for s in window:
+            mag = (s.mx, s.my, s.mz)      # use RAW int mag if the sample carries it
+            if mag != last_mag:
+                mx_sum += s.mx
+                my_sum += s.my
+                mz_sum += s.mz
+                mag_count += 1
+                last_mag = mag
+
+        if mag_count == 0:
+            mag_count = 1                  # guard against divide-by-zero
+
+        mx = mx_sum / mag_count
+        my = my_sum / mag_count
+        mz = mz_sum / mag_count
         mb = self._correct_mag(mx, my, mz)
 
         theta0 = np.arctan2(-ax, np.sqrt(ay**2 + az**2))

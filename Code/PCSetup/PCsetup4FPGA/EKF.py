@@ -17,7 +17,8 @@ import numpy as np
 
 from frame_types import PreparedSample
 
-GIMBAL_LOCK_THRESHOLD_RAD = np.radians(89.0)
+#GIMBAL_LOCK_THRESHOLD_RAD = 0.017452406
+GIMBAL_LOCK_COS_THRESHOLD = 0.017452406
 
 @dataclass
 class EKFResult:
@@ -49,8 +50,8 @@ class EKF:
         accel_dev : Sequence[float],                 # accel std (sigma) array in  order sigmax, sigmay, sigma z
         mag_dev   : Sequence[float],                 # Mag std (sigma) array in  order sigmax, sigmay, sigma z 
         # Constants
-        mag_field_horizontal_uT: float = 18.54,   # mN, Hamburg WMM 2025-2026
-        mag_field_vertical_uT: float = 45.88,     # mD, Hamburg WMM 2025-2026
+        mag_field_horizontal_uT: float = 18.225,   # mN, Hamburg WMM 2025-2026
+        mag_field_vertical_uT: float = 46.710,     # mD, Hamburg WMM 2025-2026
         gravity: float = 9.81,
 
     ):
@@ -71,28 +72,55 @@ class EKF:
     # ------------------------------------------------------------------
     # Kinematics
     # ------------------------------------------------------------------
+    # @staticmethod
+    # def _G(phi: float, theta: float) -> np.ndarray:
+    #     """
+    #     Kinematic mapping G(phi,theta), per the paper's eq. 13.
+ 
+    #     Near theta = +-90deg (gimbal lock, where 1/cos(theta) blows up),
+    #     theta is clamped to +-GIMBAL_LOCK_THRESHOLD_RAD, preserving its
+    #     sign, and a warning is printed. Returns (G, gimbal_lock_flag) so
+    #     the caller can detect and react to the condition rather than it
+    #     failing silently.
+    #     """
+    #     gimbal_lock = abs(theta) >= GIMBAL_LOCK_THRESHOLD_RAD
+    #     if gimbal_lock:
+    #         print(f"Warning: gimbal lock region (theta={np.degrees(theta):.2f} deg), "
+    #               f"clamping to {np.degrees(np.sign(theta) * GIMBAL_LOCK_THRESHOLD_RAD):.2f} deg")
+    #         theta_safe = np.sign(theta) * GIMBAL_LOCK_THRESHOLD_RAD
+    #     else:
+    #         theta_safe = theta
+ 
+    #     tan_theta = np.tan(theta_safe)
+    #     sec_theta = 1.0 / np.cos(theta_safe)
+ 
+    #     G = np.array([
+    #         [1.0, np.sin(phi) * tan_theta, np.cos(phi) * tan_theta],
+    #         [0.0, np.cos(phi), -np.sin(phi)],
+    #         [0.0, np.sin(phi) * sec_theta, np.cos(phi) * sec_theta],
+    #     ])
+    #     return G, gimbal_lock
+
     @staticmethod
     def _G(phi: float, theta: float) -> np.ndarray:
         """
         Kinematic mapping G(phi,theta), per the paper's eq. 13.
- 
-        Near theta = +-90deg (gimbal lock, where 1/cos(theta) blows up),
-        theta is clamped to +-GIMBAL_LOCK_THRESHOLD_RAD, preserving its
-        sign, and a warning is printed. Returns (G, gimbal_lock_flag) so
-        the caller can detect and react to the condition rather than it
-        failing silently.
         """
-        gimbal_lock = abs(theta) >= GIMBAL_LOCK_THRESHOLD_RAD
+        cos_theta = np.cos(theta)
+
+        gimbal_lock = (cos_theta < GIMBAL_LOCK_COS_THRESHOLD) and \
+                      (cos_theta > -GIMBAL_LOCK_COS_THRESHOLD)
+
         if gimbal_lock:
+            cos_theta_safe = GIMBAL_LOCK_COS_THRESHOLD if cos_theta >= 0.0 else -GIMBAL_LOCK_COS_THRESHOLD
             print(f"Warning: gimbal lock region (theta={np.degrees(theta):.2f} deg), "
-                  f"clamping to {np.degrees(np.sign(theta) * GIMBAL_LOCK_THRESHOLD_RAD):.2f} deg")
-            theta_safe = np.sign(theta) * GIMBAL_LOCK_THRESHOLD_RAD
+                  f"clamping cos(theta) to {cos_theta_safe:.6f}")
         else:
-            theta_safe = theta
- 
-        tan_theta = np.tan(theta_safe)
-        sec_theta = 1.0 / np.cos(theta_safe)
- 
+            cos_theta_safe = cos_theta
+
+        tan_theta = np.sin(theta) / cos_theta_safe
+        sec_theta = 1.0 / cos_theta_safe
+
         G = np.array([
             [1.0, np.sin(phi) * tan_theta, np.cos(phi) * tan_theta],
             [0.0, np.cos(phi), -np.sin(phi)],
@@ -100,14 +128,19 @@ class EKF:
         ])
         return G, gimbal_lock
 
-
     @staticmethod
     def _dGwc_dTheta(phi: float, theta: float, wc: np.ndarray) -> np.ndarray:
         """Jacobian of G(phi,theta) @ wc with respect to [phi, theta, psi].
         The psi column is always zero since G does not depend on psi.
-        Verified against finite-differences, see module docstring."""
+        cos(theta) is clamped at cos(89 deg), matching _G and the HW."""
         wcx, wcy, wcz = wc
-        sin_t, cos_t = np.sin(theta), np.cos(theta)
+        sin_t = np.sin(theta)
+        cos_t = np.cos(theta)
+
+        # clamp cos(theta) exactly like _G / HW G_matrix
+        if abs(cos_t) < GIMBAL_LOCK_COS_THRESHOLD:
+            cos_t = GIMBAL_LOCK_COS_THRESHOLD if cos_t >= 0.0 else -GIMBAL_LOCK_COS_THRESHOLD
+
         sec_t = 1.0 / cos_t
         tan_t = sin_t / cos_t
 
@@ -256,5 +289,6 @@ class EKF:
 
     def step(self, sample: PreparedSample) -> EKFResult:
         """Convenience wrapper: predict then update, in one call."""
+        EKFResultx = self.update(sample)
         self.predict(sample)
-        return self.update(sample)
+        return EKFResultx

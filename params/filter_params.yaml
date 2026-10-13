@@ -1,0 +1,4 @@
+# This file contains and unifies all the filter parameters that are used therough all the project
+# if u are using another sensor or would like to change the caliberation.
+# u make ur changes here and then run gen_params.py, that create the contants files
+# for both the python EFK core(constants.py) and the HLS Core (constants.h)

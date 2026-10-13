@@ -14,7 +14,7 @@ the output is an instantant of either PhysicalSampleMode0 class or PhysicalSampl
 
 from dataclasses import dataclass
 from typing import Optional
-from frame_types import RawSampleMode0, PhysicalSampleMode0 #, RawSampleMode1. # this should be added once done
+from frame_types import RawSampleMode0, PhysicalSampleMode0, RawSampleMode1, PhysicalSampleMode1 
 import time
 
 MAG_LOGGING_FREQ_HZ = 100  # 100 HZ
@@ -49,14 +49,14 @@ class SampleConverter:
         self.temp_sens = temp_sensitivity_lsb_per_c
         self.temp_offset = temp_offset_c
 
-        self.last_fresh_mag_t : float = 0.0
-        self.last_fresh_mag   : list[float] = [0.0, 0.0, 0.0]
-
+        self._last_mag_raw = (0, 0, 0)
+        self._t_mode1 : float = 0.0 
         # Dispatch table: raw sample type -> conversion method. 
         # type is defined in frame_types.py.
         # still need to add RawSampleMode1 -- will be done once ekf is done on the FPGA, but will be added here
         self._dispatch = {
             RawSampleMode0: self._convert_mode0,
+            RawSampleMode1: self._convert_mode1,
         }
 
     def convert(self, raw):
@@ -88,14 +88,11 @@ class SampleConverter:
         mz = raw.mz * self.mag_sens
 
         # Hnadeling of the Valid flag
-        mag_reading = [mx, my, mz]
-        mag_changed = mag_reading != self.last_fresh_mag
-        timed_out = t - self.last_fresh_mag_t > (1 / MAG_LOGGING_FREQ_HZ )
-        mag_fresh = mag_changed or timed_out
-
+        # Freshness
+        mag_raw = (raw.mx, raw.my, raw.mz)    
+        mag_fresh = (mag_raw != self._last_mag_raw)
         if mag_fresh:
-            self.last_fresh_mag_t = t
-            self.last_fresh_mag   = mag_reading
+            self._last_mag_raw = mag_raw
 
         # return
         return PhysicalSampleMode0(
@@ -104,3 +101,38 @@ class SampleConverter:
             temp=temp, mx=mx, my=my, mz=mz,
             mag_fresh=mag_fresh,
         )
+
+
+    def _convert_mode1(self, raw: RawSampleMode1) -> PhysicalSampleMode1:
+        self._t_mode1 += raw.dt
+        t = self._t_mode1
+
+        ax = - raw.ax / self.accel_sens * 9.81   # m/s2
+        ay = raw.ay / self.accel_sens * 9.81   # m/s2
+        az = raw.az / self.accel_sens * 9.81   # m/s2
+
+        gx = raw.gx / self.gyro_sens * (3.14159265/180)  #rads/s
+        gy = - raw.gy / self.gyro_sens * (3.14159265/180)  #rads/s
+        gz = - raw.gz / self.gyro_sens * (3.14159265/180)  #rads/s
+
+        mx = raw.mx * self.mag_sens
+        my = raw.my * self.mag_sens
+        mz = raw.mz * self.mag_sens
+
+        # Freshness
+        mag_raw = (raw.mx, raw.my, raw.mz)    
+        mag_fresh = (mag_raw != self._last_mag_raw)
+        if mag_fresh:
+            self._last_mag_raw = mag_raw
+
+        return PhysicalSampleMode1(
+            ax=ax, ay=ay, az=az,
+            gx=gx, gy=gy, gz=gz,
+            mx=mx, my=my, mz=mz,
+            dt=raw.dt,
+            phi=raw.phi, theta=raw.theta, psi=raw.psi,
+            bx=raw.bx, by=raw.by, bz=raw.bz,
+            mag_fresh=mag_fresh,
+        )
+
+    

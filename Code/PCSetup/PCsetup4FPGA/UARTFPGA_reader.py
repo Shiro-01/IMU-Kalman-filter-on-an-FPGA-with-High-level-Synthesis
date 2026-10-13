@@ -16,7 +16,7 @@
 """
 import serial 
 import struct 
-from frame_types import RawSampleMode0
+from frame_types import RawSampleMode0, RawSampleMode1
 
 
 # Bucket identification Constants
@@ -28,7 +28,7 @@ SYNC2 = 0x55
 # MODE_0: Q = TS_MSB,TS,TS,TS_LSB (unsigned long long) | 10h = ax,ay,az,gyrox,gyroy,gyroz,temp,magx,magy,magz (signed) | H = magState (unsigned)
 MODE_REGISTRY = {
         0x001E: ('>Q10hH', RawSampleMode0),     # (TS_MSB, TS, TS, TS_LSB, ax, ay, az, gyrox, gyroy, gyroz, temp, magx, magy, magz, magState)
-        # 0x012A: ('>...', RawSampleMode1),     # MODE_1 payload format, still to be determined
+        0x012E: ('>9h7f', RawSampleMode1),    # 
 }
 
 def compute_checksum(payload, length):

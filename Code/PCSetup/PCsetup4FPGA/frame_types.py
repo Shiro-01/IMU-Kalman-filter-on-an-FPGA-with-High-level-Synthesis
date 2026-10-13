@@ -61,8 +61,55 @@ class PreparedSample:
 
 
 
-# RawSampleMode1: ToDo -- MODE_1 payload (IMU data + state vector + performance
-# data) is not finalized yet. 
-#
-# class RawSampleMode1(NamedTuple):
-#     ...
+class RawSampleMode1(NamedTuple):
+    """One decoded MODE_1 frame: raw IMU counts + hardware-computed dt and
+    state vector. Matches output_streamer.h's frame layout exactly:
+      words 0-8   : raw_data[0..8]  -- ax,ay,az,gx,gy,gz,mx,my,mz (raw counts,
+                    same convention as RawSampleMode0's IMU words -- NOT yet
+                    scaled to physical units, that's sample_converter's job)
+      words 9-10  : dt   -- float32, split lo/hi, already reconstructed here
+      words 11-22 : state vector [phi,theta,psi,bx,by,bz] -- float32 each,
+                    split lo/hi, already reconstructed here (these are the
+                    EKF's own outputs, not raw sensor counts, so there's
+                    nothing left for sample_converter to do with them)
+    """
+    ax: int
+    ay: int
+    az: int
+    gx: int
+    gy: int
+    gz: int
+    mx: int
+    my: int
+    mz: int
+    dt: float
+    phi: float
+    theta: float
+    psi: float
+    bx: float
+    by: float
+    bz: float
+
+
+
+@dataclass
+class PhysicalSampleMode1:
+    """One converted MODE_1 sample. ax/ay/az/gx/gy/gz/mx/my/mz, dt and state vector are bypassed
+    Mag flag is calcualted."""
+    ax: float             # m/s2
+    ay: float             # m/s2
+    az: float             # m/s2
+    gx: float              # rads/s
+    gy: float              # rads/s
+    gz: float              # rads/s
+    mx: float              # physical field units (uT)
+    my: float              # physical field units (uT)
+    mz: float              # physical field units (uT)
+    dt: float              # seconds, hardware-computed, pass-through
+    phi: float             # rad, hardware EKF output, pass-through
+    theta: float           # rad, hardware EKF output, pass-through
+    psi: float             # rad, hardware EKF output, pass-through
+    bx: float              # rad/s, hardware EKF output, pass-through
+    by: float              # rad/s, hardware EKF output, pass-through
+    bz: float              # rad/s, hardware EKF output, pass-through
+    mag_fresh: bool         # diagnostic only -- not fed to a second EKF

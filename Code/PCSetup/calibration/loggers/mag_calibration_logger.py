@@ -2,9 +2,9 @@
  * @file    mag_calibration_logger.py
  *
  * @brief   Live logger for magnetometer hard/soft-iron calibration data
- *          collection. 
- * python calibrate.py -f ../data/mag_cali.txt --plot --field 49.47
- *
+ *          collection, using MODE_1 packets only.
+ * python calibrate.py -f ../data/mag_cali.txt --plot --field 50.134 --json 
+ *# python3 mag_calibration_logger.py --port /dev/tty.usbserial-10
  * @author  Abdelrahman Hewala
  * @note    Supervisor: Prof. Lutz Leutelt
  * @date    2026
@@ -14,9 +14,9 @@ import os
 import sys
 import time
 from typing import Optional, Tuple
- 
+
 import serial
- 
+
 # UARTFPGA_reader, sample_converter, and frame_types live in a sibling
 # directory, not next to this script -- resolve the path relative to this
 # file's own location (not the caller's current working directory), so
@@ -24,12 +24,11 @@ import serial
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _FPGA_LIB_DIR = os.path.join(_THIS_DIR, '..', 'PCsetup4FPGA')
 sys.path.insert(0, _FPGA_LIB_DIR)
- 
+
 from UARTFPGA_reader import read_packet
 from sample_converter import SampleConverter
 
-# Constants 
-# Constants 
+# Constants
 ACC_LSB_PER_1_G  = 2048.0             # LSBs/g.   - ±16g
 GYRO_LSB_PER_DPS = 16.4            # LSBs/(dps) - ±2000dps
 MAG_LSB = 0.15                      # µT/LSB, fixed per AK09916 spec
@@ -39,17 +38,18 @@ TEMP_OFFSET = 21.0
 
 PROGRESS_EVERY_S = 5.0
 
-# UART Protocol Setting CONSTANTS 
-PORT     = '/dev/tty.usbserial-210183ACB00B1'   # "COM4"                                     #'/dev/tty.usbserial-10' for MAC    # change it to whatever it apears in ur machine. try command (grep ('.*usb.*' | '.*USB.*') /dev) in ur terminal to see the nammings
+# UART Protocol Setting CONSTANTS
+PORT     = '/dev/tty.usbserial-210183ACB00B1'   # "COM4"    #'/dev/tty.usbserial-10' for MAC
 BAUDRATE = 1152000
-PARITY   = serial.PARITY_NONE      # serial.PARITY_NONE
-STOPBITS = serial.STOPBITS_ONE    # erial.STOPBITS_ONE
+PARITY   = serial.PARITY_NONE
+STOPBITS = serial.STOPBITS_ONE
 BYTESIZE = serial.EIGHTBITS
 
+MODE_1 = 0x012E   # only MODE_1 packets are logged
 
 
 def run_logger() -> None:
-    converter =  SampleConverter(ACC_LSB_PER_1_G, GYRO_LSB_PER_DPS, TIMESTAMP_CLK_FREQ, MAG_LSB, TEMP_LSB_PER_C, TEMP_OFFSET)
+    converter = SampleConverter(ACC_LSB_PER_1_G, GYRO_LSB_PER_DPS, TIMESTAMP_CLK_FREQ, MAG_LSB, TEMP_LSB_PER_C, TEMP_OFFSET)
 
     ser = serial.Serial(
         port=PORT,
@@ -74,6 +74,9 @@ def run_logger() -> None:
                 if result is None:
                     continue
                 modeWord, raw = result
+
+                if modeWord != MODE_1:
+                    continue  # skip anything that isn't MODE_1
 
                 physical = converter.convert(raw)
                 n_seen += 1
