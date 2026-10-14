@@ -4,7 +4,7 @@
 set script_dir [file normalize [file dirname [info script]]]
 cd $script_dir
 
-set proj_name "imu_streaming"
+set proj_name "imu_ekf"
 set proj_dir  [file normalize "../../../build/$proj_name"]
 set part_name "xc7a35tcpg236-1"  ;# Basys 3
 
@@ -13,14 +13,13 @@ create_project $proj_name $proj_dir -part $part_name -force
 cd $proj_dir
 
 # Add custom IP repository
-# script_dir = <repo>/FPGA/Tcl, so ../IP_repo = <repo>/FPGA/IP_repo
+# script_dir = <repo>/fpga/script, so ../IP_repo = <repo>/fpga/IP_repo
 set ip_repo_path [file normalize "$script_dir/../IP_repo"]
 set_property ip_repo_paths [list $ip_repo_path] [current_project]
 update_ip_catalog
 
 # add constraints (Digilent master XDC + project-specific pin constraints)
 add_files -fileset constrs_1 -norecurse [list \
-  [file normalize "$script_dir/../Constrain_files/Basys-3-Master.xdc"] \
   [file normalize "$script_dir/../Constrain_files/streaming.xdc"] \
 ]
 
@@ -31,7 +30,7 @@ set_property target_constrs_file [get_files streaming.xdc] [current_fileset -con
 #add_files -norecurse [glob -nocomplain ./src/*]
 
 # Recreate block design
-source [file normalize "$script_dir/../block_designs/IMU_Streaming.tcl"]
+source [file normalize "$script_dir/../block_designs/IMU_ekf.tcl"]
 
 # --- Safety check: fail early if no BD exists ---
 set bds [get_files *.bd]
