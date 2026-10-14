@@ -1,19 +1,68 @@
-# macOS
+# ---------------------------------------------------------------------------
+# OS / editors
+# ---------------------------------------------------------------------------
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
 
-# Simulation artifacts (GHDL/GTKWave) — any IP's sim/ folder, at any depth
+# ---------------------------------------------------------------------------
+# Python (host/)
+# ---------------------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+.streamlit/secrets.toml
+
+# Recorded sensor data (large, kept locally only)
+host/esp32_benchmark/Data/
+host/calibration/data/
+
+# ---------------------------------------------------------------------------
+# FPGA: Vivado / Vitis HLS generated output
+# ---------------------------------------------------------------------------
+# create_project.tcl builds one level above the repo; ignore it if built inside
+build/
+.Xil/
+*.jou
+vivado*.log
+vivado*.str
+vitis_hls.log
+webtalk*
+*.wdb
+
+# GHDL / GTKWave simulation artifacts (any IP's sim/ folder, at any depth)
 **/sim/*.o
 **/sim/*.cf
 **/sim/*.fst
+**/sim/*.vcd
+**/sim/*.ghw
 **/sim/tb_*
-
-Code/PCSetup/PCsetup4ESP32/AllenVarianceBenchmarkingDashboard/Data
-Literature/KalmanFilter/Kalman-and-Bayesian-Filters-in-Python/
-Literature/KalmanFilter/Fundamentals_of_Kalman_Filtering.pdf 
-Literature/ThesisGuideLines/
+!**/sim/*.wcfg
 
 /FPGA/drafts/
-Code/PCSetup/PCsetup4FPGA/__pycache__/
-Presentation
 
-Code/PCSetup/calibration/data/
+# Work-in-progress drafts (root), kept locally only
+/drafts/
+
+# ---------------------------------------------------------------------------
+# Docs: third-party material and private files, kept locally only
+# ---------------------------------------------------------------------------
+docs/Literature/KalmanFilter/
+docs/Literature/ThesisGuideLines/
+docs/Presentation/
+
+# LaTeX build output
+docs/latex/*.aux
+docs/latex/*.bbl
+docs/latex/*.blg
+docs/latex/*.fdb_latexmk
+docs/latex/*.fls
+docs/latex/*.log
+docs/latex/*.out
+docs/latex/*.synctex.gz
+docs/latex/*.toc
+docs/latex/*.pdf
