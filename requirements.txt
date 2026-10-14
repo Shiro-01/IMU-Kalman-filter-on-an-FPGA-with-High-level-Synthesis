@@ -24,3 +24,18 @@ plotly>=5.18
 # Magnetometer hard/soft-iron fit (host/calibration/magnetometer_calibration/calibrate.py)
 scipy>=1.11
 matplotlib>=3.8
+
+# ---------------------------------------------------------------------------
+# System tools (NOT installed by pip) -- needed for the VHDL IP testbenches
+# in FPGA/IP_repo/<IP>/sim (in that folder: `make` runs the simulation,
+# `make wave` also opens the result in GTKWave).
+#
+#   GHDL    >= 6.0   VHDL-2008 simulator
+#   GTKWave >= 3.4   waveform viewer (.fst/.vcd + wave.gtkw)
+#
+# Install:
+#   macOS:          brew install ghdl gtkwave
+#   Ubuntu/Debian:  sudo apt install ghdl gtkwave
+#   Windows:        GHDL from https://github.com/ghdl/ghdl/releases
+#                   GTKWave from https://gtkwave.sourceforge.net
+# ---------------------------------------------------------------------------
