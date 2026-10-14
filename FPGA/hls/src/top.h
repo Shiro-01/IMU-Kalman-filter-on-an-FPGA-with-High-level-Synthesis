@@ -22,8 +22,8 @@ void top_kalman_float(float P[6][6], float H[6], float R, float K[6]) {
 #include "converter.h"
 #include "output_streamer.h"
 
-typedef ap_fixed<25,12> T;
-//typedef float T;
+//typedef ap_fixed<25,12> T;
+typedef float T;
 
 // Pick your fixed-point type explicitly here for synthesis.
 // Swap this single line to compare float vs fixed-point utilization/timing.
