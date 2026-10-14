@@ -74,7 +74,7 @@ architecture rtl of UART_CONTROLLER is
 -- Constants
     constant SYNC   : std_logic_vector(15 downto 0)  := x"AA55";
     constant MODE_0 :std_logic_vector(15 downto 0)   := x"001E";     -- 00 for mode 0, 1E = 30 bytes
-    constant MODE_1 :std_logic_vector(15 downto 0)   := x"012A";     -- 01 for mode 1, 2A = 42 bytes
+    constant MODE_1 :std_logic_vector(15 downto 0)   := x"012E";     -- 01 for mode 1, 2E = 46 bytes
 
 -- Ports signals 
     signal s_axis_fifo_tready_r : std_logic := '1';
