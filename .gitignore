@@ -66,3 +66,7 @@ docs/latex/*.out
 docs/latex/*.synctex.gz
 docs/latex/*.toc
 docs/latex/*.pdf
+
+
+host/calibration/loggers/out.txt
+host/calibration/out.txt
