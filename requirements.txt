@@ -1,0 +1,41 @@
+# Python dependencies for everything under host/.
+# Install from the repository root:
+#   python3 -m venv .venv
+#   source .venv/bin/activate
+#   pip install -r requirements.txt
+
+# Core: imu_pipeline (UART decode, conversion, EKF) and calibration loggers
+numpy>=1.26
+pyserial>=3.5
+
+# Real-time GUI (host/gui)
+PySide6>=6.10
+pyqtgraph>=0.13
+PyOpenGL>=3.1
+PyOpenGL_accelerate>=3.1
+trimesh>=4.0
+
+# Streamlit dashboards (host/calibration/allan_variance, host/esp32_benchmark/analyzer_dashboard)
+streamlit>=1.32
+allantools>=2019.9
+pandas>=2.0
+plotly>=5.18
+
+# Magnetometer hard/soft-iron fit (host/calibration/magnetometer_calibration/calibrate.py)
+scipy>=1.11
+matplotlib>=3.8
+
+# ---------------------------------------------------------------------------
+# System tools (NOT installed by pip) -- needed for the VHDL IP testbenches
+# in FPGA/IP_repo/<IP>/sim (in that folder: `make` runs the simulation,
+# `make wave` also opens the result in GTKWave).
+#
+#   GHDL    >= 6.0   VHDL-2008 simulator
+#   GTKWave >= 3.4   waveform viewer (.fst/.vcd + wave.gtkw)
+#
+# Install:
+#   macOS:          brew install ghdl gtkwave
+#   Ubuntu/Debian:  sudo apt install ghdl gtkwave
+#   Windows:        GHDL from https://github.com/ghdl/ghdl/releases
+#                   GTKWave from https://gtkwave.sourceforge.net
+# ---------------------------------------------------------------------------

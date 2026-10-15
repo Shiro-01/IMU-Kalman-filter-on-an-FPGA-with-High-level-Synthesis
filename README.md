@@ -1,36 +1,170 @@
 # IMU Kalman Filter on FPGA using High-Level Synthesis
 
-Bachelor thesis project on implementing IMU sensor fusion with a Kalman
-filter on an FPGA, using High-Level Synthesis (HLS). The project runs the
-full pipeline start to finish: benchmarking candidate IMUs using Allan Variance, Noise characterization, acquiring
-sensor data on real hardware, designing and validating the filter in
-software, and finally accelerating it on FPGA fabric.
+Bachelor thesis project on implementing IMU sensor fusion with an Extended Kalman
+Filter (EKF) on an FPGA, using High-Level Synthesis (HLS). The project covers the
+full pipeline: benchmarking candidate IMUs by Allan variance, characterizing
+sensor noise, acquiring sensor data on real hardware, designing and validating
+the filter in software, and running it on FPGA fabric.
 
 Supervisor: Prof. Lutz Leutelt
+
+---
+
+## System Overview
+
+```mermaid
+flowchart LR
+    IMU[ICM-20948 + AK09916] -- SPI --> ACQ
+
+    subgraph FPGA[FPGA: Basys 3]
+        ACQ[Acquisition IPs<br/>SPI, timestamp, FIFO] --> EKF[HLS EKF IP<br/>ekf_fp]
+        EKF --> TX[UART framing<br/>MODE_1]
+    end
+
+    TX -- UART --> PIPE
+
+    subgraph PC[Host PC]
+        PIPE[imu_pipeline<br/>decode, units] --> SW[Software EKF<br/>reference]
+        PIPE --> GUI[Real-time GUI<br/>HW vs SW state]
+        SW --> GUI
+    end
+```
+
+The FPGA reads the ICM-20948 at 1125 Hz, runs the EKF in hardware, and streams
+each sample with the filter state to the PC. The host decodes the stream, runs
+the same filter in software as a reference, and shows both side by side.
 
 ---
 
 ## Repository Structure
 
 ```
-IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis/
-├── Code/
-│   ├── ESP32/                FreeRTOS ESP32 firmware for IMU benchmarking
-│   └── PCsetup/
-│       ├── PCsetup4ESP32/    Allan variance streamlit benchmarking dashboard
-│       └── PCsetup4FPGA/     UART decode, unit conversion, live pipeline
-├── DataSheets/               Datasheets for every sensor or board in use
-├── FPGA/                     Vivado project recreation, IP repo, block design, TCLs and more. Pls See FPGA/README.md
-├── Literature/                Reference material, Kalman filter design notebook
-└── README.md                  This file
+├── FPGA/              Vivado design: custom IP cores, HLS EKF, block designs, constraints
+│   ├── IP_repo/       Packaged IP cores (SPI, UART, FIFO, timestamping, ekf, ...)
+│   ├── hls/           HLS C++ source and testbenches of the EKF
+│   ├── block_designs/ Block design Tcl exports
+│   ├── Constrain_files/  XDC constraints
+│   └── scripts/       Vivado project recreation script
+├── host/              PC software: UART decode, software EKF, GUI, calibration tools
+├── firmware/          ESP32 firmware for the IMU benchmarking phase
+├── docs/              Datasheets, literature, EKF design notebook, thesis source
+├── params/            Filter parameter file (planned single source of constants)
+└── requirements.txt   Python dependencies, plus GHDL/GTKWave notes
 ```
 
-`FPGA/README.md` covers the FPGA acquisition pipeline in full detail:
-architecture, IP cores, build instructions, and the PC-side decode
-pipeline. 
+Each part has its own README with the details:
+
+| Folder | README |
+|---|---|
+| FPGA design | [`FPGA/README.md`](FPGA/README.md) |
+| HLS EKF | [`FPGA/hls/README.md`](FPGA/hls/README.md) |
+| Host software | [`host/README.md`](host/README.md) |
+| Real-time GUI | [`host/gui/README.md`](host/gui/README.md) |
+| ESP32 firmware | [`firmware/README.md`](firmware/README.md) |
 
 ---
 
+## Getting Started
+
+### Host software (Python)
+
+```bash
+git clone --recurse-submodules https://github.com/Shiro-01/IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis.git
+cd IMU-Kalman-filter-on-an-FPGA-with-High-level-Synthesis
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Try the GUI without hardware (select the **Mock** source and click **Start**):
+
+```bash
+python3 host/gui/gui_app.py
+```
+
+### FPGA
+
+In Vivado's Tcl console:
+
+```tcl
+source /path/to/repo/FPGA/scripts/create_project.tcl
+```
+
+This recreates the project with the custom IP repository, constraints and the
+EKF block design. The project is created in `build/`, one level above the
+repository. See [`FPGA/README.md`](FPGA/README.md) for tool versions and details.
+
+### IP testbenches (VHDL)
+
+Install [GHDL](https://github.com/ghdl/ghdl) and
+[GTKWave](https://gtkwave.sourceforge.net) (see `requirements.txt`), then from an
+IP's `sim/` folder:
+
+```bash
+make
+```
+
+`make wave` also opens the waveform in GTKWave.
+
+### ESP32 firmware
+
+Open a sketch in `firmware/esp32/` with the Arduino IDE (Arduino-ESP32 core 3.x).
+See [`firmware/README.md`](firmware/README.md).
+
+---
+
+## Project Phases
+
+### 1. IMU benchmarking
+
+Three candidate IMUs (MPU6050, ICM-20948, WitMotion WT901) were logged
+simultaneously at 1 kHz by an ESP32
+([`firmware/esp32/imu_benchmark_logger`](firmware/esp32/imu_benchmark_logger))
+and compared by Allan deviation (ARW, bias instability, rate random walk) in a
+Streamlit dashboard
+([`host/esp32_benchmark`](host/esp32_benchmark)). The ICM-20948 was selected.
+
+### 2. FPGA acquisition pipeline
+
+Custom VHDL IP cores read the ICM-20948 and its AK09916 magnetometer over SPI at
+1125 Hz, timestamp each sample, and stream framed, checksummed packets to the PC
+over UART. The host side ([`host/imu_pipeline`](host/imu_pipeline)) resyncs on
+the frames, validates them and converts raw counts to physical units.
+
+### 3. Sensor characterization and EKF design
+
+The selected sensor's noise was measured by Allan variance and its magnetometer
+calibrated (hard/soft-iron), using the loggers and tools in
+[`host/calibration`](host/calibration). The EKF (state: roll, pitch, yaw and
+gyro bias) is derived in
+[`docs/Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`](docs/Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb).
+The software reference implementation is
+[`host/imu_pipeline/ekf.py`](host/imu_pipeline/ekf.py).
+
+### 4. EKF in hardware with HLS
+
+The filter was written in C++ for Vitis HLS ([`FPGA/hls`](FPGA/hls)), exported as
+the `ekf` IP core and integrated into the block design between the acquisition
+FIFO and the UART output. The FPGA now streams **MODE_1** frames (raw IMU data,
+`dt` and the hardware filter state). The host runs the software EKF on the same
+samples, so the two can be compared directly, live in the GUI or on the console
+with `host/imu_pipeline/app_mode1.py`.
+
+---
+
+## Where Things Stand
+
+| Area | Status |
+|---|---|
+| IMU benchmarking | Done |
+| FPGA acquisition pipeline | Done |
+| Noise characterization and magnetometer calibration | Done |
+| EKF design and Python reference | Done |
+| HLS EKF (float), exported as IP and integrated in the block design | Done |
+| Host decode, software reference EKF, real-time HW vs SW GUI | Done |
+| Evaluation (HW vs SW accuracy, resources and timing, commercial IMU comparison) | In progress |
+
+---
 
 ## WBS
 
@@ -82,75 +216,16 @@ direction LR
 
     Performance_Evaluation --> ESP32_Software_Implementation
     Performance_Evaluation --> FPGA_HLS_Implementation
-    Performance_Evaluation --> Commercial_IMU_Comparison```
+    Performance_Evaluation --> Commercial_IMU_Comparison
 ```
-
-## Where things stand
-
-- **IMU benchmarking** : done. Three candidate IMUs logged simultaneously
-  on an ESP32, compared by Allan variance.
-- **FPGA acquisition pipeline** : done, end to end. ICM-20948 over SPI,
-  timestamped, framed, streamed over UART, decoded and converted to
-  physical units on the PC. See `FPGA/README.md`.
-- **Kalman filter design** : done. The filter design itself (state
-  vector, process and measurement models) is finished, worked out in
-  `Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`.
-  What is left is fine-tuning against real logged sensor data in Python.
-- **HLS conversion** : not started yet. Follows once the Python filter is
-  tuned and validated against real data from the FPGA pipeline.
 
 ---
 
-## Phase 1: IMU Benchmarking
+## Tools
 
-Before committing to a sensor for the FPGA build, three IMUs were
-benchmarked against each other by Allan variance: the MPU6050, the
-ICM-20948, and the WitMotion WT901.
-
-An ESP32 (`Code/ESP32/ESP32_data_Aquisition/`) reads all three sensors in
-
-parallel on a 1kHz hardware timer, using a FreeRTOS producer, consumer 
-pair of tasks (a collector task filling triple-buffered frames, a logger
-task writing them to SD card) so sampling stays on schedule even while the
-SD card is being written to. Each 50-byte frame holds a 64-bit
-microsecond timestamp plus raw accel, gyro, and temperature counts from
-all three IMUs.
-
-`Code/PCsetup/PCsetup4ESP32/AllenVarianceBenchmarkingDashboard/` is a
-Streamlit dashboard that loads a recorded `DATA.BIN` file, scales each
-sensor into physical units, and computes Allan deviation per axis per
-sensor, extracting ARW, bias instability, and rate random walk for direct
-comparison. Run it with:
-
-```
-streamlit run dashboardV2.py
-```
-
-`decoder.py` in the same folder is a small standalone script for
-inspecting a `.BIN` file's frame headers directly, useful for quick
-sanity checks without opening the full dashboard.
-
-The full methodology (outlier handling, the WT901's native versus logged
-sample rate, bandwidth normalization) is documented inline in
-`data_engine_V2.py`
-
----
-
-## Phase 2: FPGA Acquisition Pipeline
-
-Covered in full in `FPGA/README.md`. In short: an ICM-20948 is read over
-SPI at 1.125kHz, timestamped, framed into a checksummed protocol, and
-streamed to a PC over UART. `Code/PCsetup/PCsetup4FPGA/` decodes that
-stream, dispatches on frame mode, and converts raw register counts into
-physical units, ready for the Kalman filter.
-
----
-
-## Phase 3: Kalman Filter and HLS
-
-The filter design is complete, and its derivation lives in
-`Literature/KalmanFilter/Kalman_Filter_for_IMU_Explained_v1.ipynb`.
-Current work is fine-tuning it in Python against real data captured
-through the FPGA pipeline above, rather than synthetic input. Once tuned
-and validated, the next stage is porting the filter to HLS for FPGA
-acceleration.
+| Tool | Used for |
+|---|---|
+| AMD Vivado / Vitis HLS | FPGA design and HLS synthesis (versions in [`FPGA/README.md`](FPGA/README.md)) |
+| GHDL, GTKWave | VHDL IP testbenches |
+| Python 3 | Host software and analysis tools (`requirements.txt`) |
+| Arduino IDE + Arduino-ESP32 core 3.x | ESP32 firmware |

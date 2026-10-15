@@ -177,9 +177,12 @@ architecture rtl of spi_controller is
         --(SETUP_WRITE,       x"06", x"80", '1'),                   -- 2) PWR_MGMT_1 = RESET, then wait
         (SETUP_WRITE,       x"06", x"01", '0'),                   -- 3) PWR_MGMT_1 = CLK_PLL -- Wake up + auto clock (PLL)
         (SETUP_WRITE,       x"07", x"00", '0'),                   -- 4) PWR_MGMT_2 = accel+gyro on - Both enabled
+        (SETUP_READ_VERIFY, x"07", x"00", '0'),
         (SETUP_WRITE,       REG_BANK_SEL, ICM20948_BANK_2, '0'),  -- 5) select Bank 2
         (SETUP_WRITE,       x"00", x"00", '0'),                   -- 6) Gyro ODR — 1.125 kHz, GYRO_SMPLRT_DIV
         (SETUP_WRITE,       x"01", x"3F", '0'),                   -- 7) GYRO_CONFIG_1 (running: ±2000dps, DLPF 361.4Hz)
+        (SETUP_READ_VERIFY, x"01", x"3F", '0'),
+        
         (SETUP_WRITE,       x"02", x"00", '0'),                   -- 8) GYRO_CONFIG_2 - No self-test, no extra averaging
         (SETUP_WRITE,       x"10", x"00", '0'),                   -- 9) ACCEL_SMPLRT_DIV_1 -- Accel ODR — 1.125 kHz
         (SETUP_WRITE,       x"11", x"00", '0'),                   -- 10) ACCEL_SMPLRT_DIV_2 - rest of the Accel ODR divide
