@@ -39,8 +39,8 @@ All tools share one environment. From the repository root:
 
 ```bash
 git submodule update --init
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv ekf
+source ekf/bin/activate
 pip install -r requirements.txt
 ```
 

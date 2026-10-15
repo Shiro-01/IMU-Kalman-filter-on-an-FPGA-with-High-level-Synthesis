@@ -69,7 +69,7 @@ above the repository root and is not tracked in version control. See below.
    source /path/to/repo/FPGA/Tcl/create_project.tcl
    ```
 3. The script:
-   - Creates a new project at `build/imu_streaming`, one level above the
+   - Creates a new project at `build/imu_ekf`, one level above the
      repository root.
    - Adds `FPGA/IP_repo` as a custom IP repository and updates the catalog.
    - Adds both `Basys-3-Master.xdc` and `streaming.xdc`, and sets
