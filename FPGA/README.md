@@ -99,7 +99,7 @@ button) goes through `reset_synchronizer` to every block's active-low reset.
 
 Per sample:
 
-1. `ce_pulse_gen` triggers a sample every 1/1125 s.
+1. `ce_pulse_gen` or `IMU interupt` triggers a sample every 1/1125 s.
 2. `spi_controller` latches the 64-bit timestamp from `timestamping_unit` and
    drives `spi_master` through one burst SPI read of accel, gyro, temperature and
    magnetometer. At reset it runs a table-driven setup sequence on the ICM-20948
@@ -195,9 +195,7 @@ waveform configurations in their folders. The HLS testbenches are described in
   Pmod JC7, but in the block design `ce_pulse_gen`'s pulse drives
   `spi_controller`'s `IMU_INT` input instead. This keeps the sample rate
   deterministic for testing. Switching to the real interrupt pin is planned.
-- **Downstream backpressure is assumed to stay under one SPI byte period.** If
-  `m_axis_fifo_tready` in `spi_controller` is held low longer than that, SPI byte
-  tracking desyncs. This has not happened in current testing.
+
 - **The magnetometer ST2 status byte doesn't fully match the AK09916 datasheet.**
   In observed captures its upper bits step through a repeating pattern instead of
   staying fixed. Accel, gyro, temperature and magnetic field readings are not
